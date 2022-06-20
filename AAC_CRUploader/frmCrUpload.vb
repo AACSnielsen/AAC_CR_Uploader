@@ -8,10 +8,26 @@ Public Class UploadCRFile
     Protected Friend ReceiptId As String
     Protected Friend gdtMap As DataTable
     Protected Friend gImportNum As Integer
-
-
+    Protected Friend gAutoRun As Boolean = False
+    Protected Friend gAutoFile As String = ""
+    Protected Friend gAutoMap As String = ""
 
     Private Sub UploadCRFile_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        Dim args As String()
+        args = Environment.GetCommandLineArgs
+        For argIx = 1 To args.Count - 1
+            If args(argIx) = "AUTORUN" Then
+                gAutoRun = True
+            End If
+            If args(argIx).Contains(".") Then
+                gAutoFile = args(argIx)
+            End If
+            If args(argIx).Length < 5 Then
+                gAutoMap = args(argIx)
+            End If
+
+        Next argIx
+
         FormLoad = True
         Dim lServer As String = "SDN-ENVY-2020\SDN_HPENVY"
         Dim lDatabase As String = "TestDB"
@@ -37,6 +53,7 @@ Public Class UploadCRFile
 
         lSqlConnection.Close()
         FormLoad = False
+
     End Sub
 
 
@@ -53,8 +70,6 @@ Public Class UploadCRFile
 
     Private Sub cboMap_SelectedIndexChanged(sender As Object, e As EventArgs) Handles cboMap.SelectedIndexChanged
         If Not FormLoad Then
-
-
             Dim lServer As String = "SDN-ENVY-2020\SDN_HPENVY"
             Dim lDatabase As String = "TestDB"
             Dim lSqlConnection As New SqlClient.SqlConnection
@@ -73,13 +88,11 @@ Public Class UploadCRFile
                        "Select MapCode, MapDesc, FileMask, FileType, ReceiptID from _aac_crmapz where mapcode = '" & cboMap.SelectedValue & "';" &
                        "Select next value for sequence.import_num as Import_Num from _aac_crmap where mapcode = '" & cboMap.SelectedValue & "' and sourcecolumnlabel = '%ImportNum%';"
             Dim ldaMap As New SqlDataAdapter(lCmdText, lSqlConnection)
-            'Dim ldtMap As New DataTable
             Dim ldsMap = New DataSet
             ldaMap.Fill(ldsMap)
-            'ldaMap.Fill(ldtMap)
 
             gdtMap = ldsMap.Tables(0)
-            dbMap.DataSource = gdtMap 'ldsMap.Tables(0)
+            dbMap.DataSource = gdtMap
 
             dbMapz.DataSource = ldsMap.Tables(1)
             ReceiptId = ldsMap.Tables(1).Rows(0)("ReceiptID") 'Get identifier for receipt object
