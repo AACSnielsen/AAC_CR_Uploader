@@ -7,7 +7,7 @@ Public Class UploadCRFile
     Protected Friend FormLoad As Boolean
     Protected Friend ReceiptId As String
     Protected Friend gdtMap As DataTable
-    Protected Friend gImportNum As Integer
+    Protected Friend gImportNum As Integer = -1
     Protected Friend gAutoRun As Boolean = False
     Protected Friend gAutoFile As String = ""
     Protected Friend gAutoMap As String = ""
@@ -49,26 +49,39 @@ Public Class UploadCRFile
             .DataSource = ldtMaps
             .DisplayMember = "MapDesc"
             .ValueMember = "MapCode"
+
         End With
 
         lSqlConnection.Close()
         FormLoad = False
+        If gAutoMap <> "" Then
+            cboMap.SelectedIndex = 0
+            cboMap.SelectedValue = gAutoMap
+            Application.DoEvents()
+        End If
+        If gAutoFile <> "" Then
+            txtCRFile.Text = gAutoFile
+            OpenFileDialog1.FileName = gAutoFile
+        End If
+        If gAutoRun Then
+            btnUpload_Click(sender, e)
+            btnClose_Click(sender, e)
 
+
+        End If
     End Sub
-
 
     Private Sub btnOpen_Click(sender As Object, e As EventArgs) Handles btnOpen.Click
         OpenFileDialog1.ShowDialog()
         txtCRFile.Text = OpenFileDialog1.FileName
     End Sub
 
-
-
     Private Sub btnClose_Click(sender As Object, e As EventArgs) Handles btnClose.Click
         Me.Close()
     End Sub
 
     Private Sub cboMap_SelectedIndexChanged(sender As Object, e As EventArgs) Handles cboMap.SelectedIndexChanged
+        ' cboMap has all defined mappings.  When selected, load the details for that mapping to the gdtMap Data table
         If Not FormLoad Then
             Dim lServer As String = "SDN-ENVY-2020\SDN_HPENVY"
             Dim lDatabase As String = "TestDB"
@@ -78,7 +91,7 @@ Public Class UploadCRFile
             lSqlConnection.ConnectionString = lConnectionString
             lSqlConnection.Open()
             Dim lCmdText As String = ""
-            'Endsure sequenece exists
+            'Endsure SQL sequenece exists
             lCmdText = "if not exists (select * from sys.sequences where schema_name(schema_id) = 'sequence' and name = 'import_num') " &
                         "CREATE SEQUENCE [Sequence].[Import_Num]  START WITH 1"
             Dim lcmd As New SqlCommand(lCmdText, lSqlConnection)
@@ -102,15 +115,9 @@ Public Class UploadCRFile
                 gImportNum = ldsMap.Tables(2).Rows(0)(0)
             End If
 
-
-
             btnOpen.Enabled = True
             txtCRFile.Enabled = True
 
-
-            'With dbMap
-            ' .DataSource = ldtMap
-            ' End With
         End If
     End Sub
 
@@ -221,16 +228,37 @@ Public Class UploadCRFile
     End Sub
 
     Private Sub txtCRFile_TextChanged(sender As Object, e As EventArgs) Handles txtCRFile.TextChanged
-        Dim dssample As New DataSet
-        Dim CSVSelect As String = "select * from [" & Path.GetFileName(OpenFileDialog1.FileName) & "]"
-        Dim CnStr = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" & Path.GetDirectoryName(OpenFileDialog1.FileName) & ";Extended Properties=""text;HDR=Yes;FMT=Delimited"";"
+        If txtCRFile.Text <> "" Then
+            If File.Exists(txtCRFile.Text) Then
+                Try
+                    Dim dssample As New DataSet
+                    Dim CSVSelect As String = "select * from [" & Path.GetFileName(txtCRFile.Text) & "]"
+                    Dim CnStr = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" & Path.GetDirectoryName(txtCRFile.Text) & ";Extended Properties=""text;HDR=Yes;FMT=Delimited"";"
 
-        Using Adp As New OleDbDataAdapter(CSVSelect, CnStr)
-            Adp.Fill(dssample)
-        End Using
+                    Using Adp As New OleDbDataAdapter(CSVSelect, CnStr)
+                        Adp.Fill(dssample)
+                    End Using
 
-        gvData.DataSource = dssample.Tables(0)
+                    gvData.DataSource = dssample.Tables(0)
+                Catch ex As Exception
+                    MsgBox(ex.Message, MsgBoxStyle.Critical, "Error in CRFile.change event.")
+                End Try
+
+            End If
+
+        End If
+
+
     End Sub
 
+    Private Sub cboMap_SelectedValueChanged(sender As Object, e As EventArgs) Handles cboMap.SelectedValueChanged
+        If Not FormLoad Then
+            txtCRFile_TextChanged(sender, e)
+        End If
 
+    End Sub
+
+    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles btnEditMap.Click
+        frmEditMap.Show()
+    End Sub
 End Class

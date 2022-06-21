@@ -37,6 +37,7 @@ Partial Class UploadCRFile
         Me.Label5 = New System.Windows.Forms.Label()
         Me.gvData = New System.Windows.Forms.DataGridView()
         Me.chkNoUpdate = New System.Windows.Forms.CheckBox()
+        Me.btnEditMap = New System.Windows.Forms.Button()
         CType(Me.dbMap, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.dbMapz, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.gvData, System.ComponentModel.ISupportInitialize).BeginInit()
@@ -177,11 +178,21 @@ Partial Class UploadCRFile
         Me.chkNoUpdate.Text = "No SQL Updates"
         Me.chkNoUpdate.UseVisualStyleBackColor = True
         '
+        'btnEditMap
+        '
+        Me.btnEditMap.Location = New System.Drawing.Point(318, 539)
+        Me.btnEditMap.Name = "btnEditMap"
+        Me.btnEditMap.Size = New System.Drawing.Size(101, 23)
+        Me.btnEditMap.TabIndex = 15
+        Me.btnEditMap.Text = "Edit Mapping"
+        Me.btnEditMap.UseVisualStyleBackColor = True
+        '
         'UploadCRFile
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(676, 577)
+        Me.Controls.Add(Me.btnEditMap)
         Me.Controls.Add(Me.chkNoUpdate)
         Me.Controls.Add(Me.gvData)
         Me.Controls.Add(Me.Label5)
@@ -221,4 +232,5 @@ Partial Class UploadCRFile
     Friend WithEvents Label5 As Label
     Friend WithEvents gvData As DataGridView
     Friend WithEvents chkNoUpdate As CheckBox
+    Friend WithEvents btnEditMap As Button
 End Class
