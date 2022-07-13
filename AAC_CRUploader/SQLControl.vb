@@ -18,9 +18,7 @@ Public Class SQLControl
             SqlConnection.Open()
 
             sqlcmd = New SqlCommand(pQuery, SqlConnection)
-
             Params.ForEach(Sub(x) sqlcmd.Parameters.Add(x))
-
             Params.Clear()
 
             sqlds = New DataSet
@@ -34,5 +32,20 @@ Public Class SQLControl
             SqlConnection.Close()
         End If
     End Sub
+    Public Sub ExecCmd(pQuery As String)
+        Try
+            SqlConnection.Open()
+            sqlcmd = New SqlCommand(pQuery, SqlConnection)
+            Params.ForEach(Sub(x) sqlcmd.Parameters.Add(x))
+            Params.Clear()
 
+            sqlcmd.ExecuteNonQuery()
+            SqlConnection.Close()
+        Catch ex As Exception
+            MsgBox(ex.Message, MsgBoxStyle.Critical, "Error in ExecCmd.")
+        End Try
+        If SqlConnection.State = ConnectionState.Open Then
+            SqlConnection.Close()
+        End If
+    End Sub
 End Class

@@ -1,6 +1,7 @@
 ﻿Imports System.Data.SqlClient
 Imports System.Data.OleDb
 Imports System.IO
+Imports System.Xml
 
 
 Public Class UploadCRFile
@@ -11,6 +12,10 @@ Public Class UploadCRFile
     Protected Friend gAutoRun As Boolean = False
     Protected Friend gAutoFile As String = ""
     Protected Friend gAutoMap As String = ""
+    Protected Friend gSQLConnection As SqlConnection
+
+    Protected Friend gCRDataFile As New DataSet
+
 
     Private Sub UploadCRFile_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         Dim args As String()
@@ -29,19 +34,32 @@ Public Class UploadCRFile
         Next argIx
 
         FormLoad = True
-        Dim lServer As String = "SDN-ENVY-2020\SDN_HPENVY"
-        Dim lDatabase As String = "TestDB"
-        Dim lSqlConnection As New SqlClient.SqlConnection
+        Dim lServer As String = "" '= "SDN-ENVY-2020\SDN_HPENVY"
+        Dim lDatabase As String = "" '= "TestDB"
+        gSQLConnection = New SqlClient.SqlConnection
         Dim lConnectionString As String
         btnOpen.Enabled = False
         txtCRFile.Enabled = False
 
+        Dim AppPath As String = System.AppDomain.CurrentDomain.BaseDirectory()
+        If File.Exists(AppPath & "Instance.config") Then 'Get connection info
+            Dim ConfigXML As New XmlDocument() 'XDocument = XDocument.Load(AppPath & "Instance.config")
+            ConfigXML.Load(AppPath & "Instance.config")
+            Dim RepositoryNode As XmlNode = ConfigXML.GetElementsByTagName("repository")(0)
+            lServer = (RepositoryNode.Attributes("server").Value)
+            lDatabase = (RepositoryNode.Attributes("name").Value)
+        End If
+        If lServer = "" Then ' Error - no config found
+            MsgBox("No connection info found in Instance.config or file is missing." & vbCrLf & "(" + AppPath & ")" & vbCrLf & "<instanceMetadataConfigurationSection><repository name={database} server={server}...>", MsgBoxStyle.Critical + MsgBoxStyle.OkOnly, "No valid connection information")
+            End
+        End If
+
         lConnectionString = "Server=" & lServer & "; Database=" & lDatabase & ";Integrated Security=SSPI;"
-        lSqlConnection.ConnectionString = lConnectionString
-        lSqlConnection.Open()
+        gSQLConnection.ConnectionString = lConnectionString
+        gSQLConnection.Open()
         Dim lCmdText As String = "Select Mapcode, MapDesc, FileMask, FileType from _aac_CRMAPZ where inactive <> 'Y'"
 
-        Dim ldaMaps As New SqlDataAdapter(lCmdText, lSqlConnection)
+        Dim ldaMaps As New SqlDataAdapter(lCmdText, gSQLConnection)
         Dim ldtMaps As New DataTable
         ldaMaps.Fill(ldtMaps)
 
@@ -52,7 +70,7 @@ Public Class UploadCRFile
 
         End With
 
-        lSqlConnection.Close()
+        'gSQLConnection.Close()
         FormLoad = False
         If gAutoMap <> "" Then
             cboMap.SelectedIndex = 0
@@ -77,48 +95,68 @@ Public Class UploadCRFile
     End Sub
 
     Private Sub btnClose_Click(sender As Object, e As EventArgs) Handles btnClose.Click
+        If gSQLConnection.State = ConnectionState.Open Then
+            gSQLConnection.Close()
+        End If
         Me.Close()
+        End
     End Sub
 
     Private Sub cboMap_SelectedIndexChanged(sender As Object, e As EventArgs) Handles cboMap.SelectedIndexChanged
         ' cboMap has all defined mappings.  When selected, load the details for that mapping to the gdtMap Data table
         If Not FormLoad Then
-            Dim lServer As String = "SDN-ENVY-2020\SDN_HPENVY"
-            Dim lDatabase As String = "TestDB"
-            Dim lSqlConnection As New SqlClient.SqlConnection
-            Dim lConnectionString As String
-            lConnectionString = "Server=" & lServer & "; Database=" & lDatabase & ";Integrated Security=SSPI;"
-            lSqlConnection.ConnectionString = lConnectionString
-            lSqlConnection.Open()
-            Dim lCmdText As String = ""
-            'Endsure SQL sequenece exists
-            lCmdText = "if not exists (select * from sys.sequences where schema_name(schema_id) = 'sequence' and name = 'import_num') " &
+            Try
+                Dim lServer As String = "SDN-ENVY-2020\SDN_HPENVY"
+                Dim lDatabase As String = "TestDB"
+                'Dim gSQLConnection As New SqlClient.SqlConnection
+                'Dim lConnectionString As String
+                'lConnectionString = "Server=" & lServer & "; Database=" & lDatabase & ";Integrated Security=SSPI;"
+                'gSQLConnection.ConnectionString = lConnectionString
+                'gSQLConnection.Open()
+                Dim lCmdText As String = ""
+                'Endsure SQL sequenece exists
+                lCmdText = "if not exists (select * from sys.sequences where schema_name(schema_id) = 'sequence' and name = 'import_num') " &
                         "CREATE SEQUENCE [Sequence].[Import_Num]  START WITH 1"
-            Dim lcmd As New SqlCommand(lCmdText, lSqlConnection)
-            lcmd.ExecuteNonQuery()
+                Dim lcmd As New SqlCommand(lCmdText, gSQLConnection)
+                lcmd.ExecuteNonQuery()
 
-            lCmdText = "Select Mapcode, ApplicationType, SourceColumnLabel, TargetColumn, DataType from _aac_CRMAP where mapcode = '" & cboMap.SelectedValue & "' order by applicationType DESC;" &
+                lCmdText = "Select Mapcode, ApplicationType, SourceColumnLabel, TargetColumn, DataType from _aac_CRMAP where mapcode = '" & cboMap.SelectedValue & "' order by applicationType DESC;" &
                        "Select MapCode, MapDesc, FileMask, FileType, ReceiptID from _aac_crmapz where mapcode = '" & cboMap.SelectedValue & "';" &
                        "Select next value for sequence.import_num as Import_Num from _aac_crmap where mapcode = '" & cboMap.SelectedValue & "' and sourcecolumnlabel = '%ImportNum%';"
-            Dim ldaMap As New SqlDataAdapter(lCmdText, lSqlConnection)
-            Dim ldsMap = New DataSet
-            ldaMap.Fill(ldsMap)
+                Dim ldaMap As New SqlDataAdapter(lCmdText, gSQLConnection)
+                Dim ldsMap = New DataSet
+                ldaMap.Fill(ldsMap)
 
-            gdtMap = ldsMap.Tables(0)
-            dbMap.DataSource = gdtMap
+                gdtMap = ldsMap.Tables(0)
+                dbMap.DataSource = gdtMap
 
-            dbMapz.DataSource = ldsMap.Tables(1)
-            ReceiptId = ldsMap.Tables(1).Rows(0)("ReceiptID") 'Get identifier for receipt object
-            OpenFileDialog1.Filter = "CR IMport Files|" & ldsMap.Tables(1).Rows(0)("FileMask") 'Get identifier for receipt object
+                dbMapz.DataSource = ldsMap.Tables(1)
+                ReceiptId = ldsMap.Tables(1).Rows(0)("ReceiptID") 'Get identifier for receipt object
+                OpenFileDialog1.Filter = "CR IMport Files|" & ldsMap.Tables(1).Rows(0)("FileMask") 'Get identifier for receipt object
 
-            If ldsMap.Tables(2).Rows.Count > 0 Then
-                gImportNum = ldsMap.Tables(2).Rows(0)(0)
-            End If
+                If ldsMap.Tables(2).Rows.Count > 0 Then
+                    gImportNum = ldsMap.Tables(2).Rows(0)(0)
+                End If
 
-            btnOpen.Enabled = True
-            txtCRFile.Enabled = True
+                btnOpen.Enabled = True
+                txtCRFile.Enabled = True
+            Catch err As Exception
+                Dim mresp As MsgBoxResult
+                mresp = MsgBox("Unexpected Error:" & err.Message, MsgBoxStyle.Critical + MsgBoxStyle.OkCancel + MsgBoxStyle.DefaultButton2, "Error in cboMap.SelectedIndexChanged")
+                If mresp = MsgBoxResult.Cancel Then
+                    ProgramAbend()
+
+                End If
+                Debug.Print(e.ToString)
+            End Try
 
         End If
+    End Sub
+    Private Sub ProgramAbend()
+        If gSQLConnection.State = ConnectionState.Open Then
+            gSQLConnection.Close()
+        End If
+        End
     End Sub
 
     Private Sub btnUpload_Click(sender As Object, e As EventArgs) Handles btnUpload.Click
@@ -126,18 +164,19 @@ Public Class UploadCRFile
         ' Application types include, among others, 'R'eceipts Headers, 'A'pplications to BIlls
         '  Get distinct types from mapping,  then for each type, get disctinct values
         Dim lcmd As New SqlCommand
-        Dim lServer As String = "SDN-ENVY-2020\SDN_HPENVY"
-        Dim lDatabase As String = "TestDB"
-        Dim lSqlConnection As New SqlClient.SqlConnection
-        Dim lConnectionString As String
-        If chkNoUpdate.Checked = CheckState.Unchecked Then
+        lcmd.Connection = gSQLConnection
 
-            lConnectionString = "Server=" & lServer & "; Database=" & lDatabase & ";Integrated Security=SSPI;"
-            lSqlConnection.ConnectionString = lConnectionString
-            lSqlConnection.Open()
-            lcmd.Connection = lSqlConnection
+        Dim lCmdText As String = "select count(*) as 'Count', max(_StagingDate) 'StagingDate' from _aac_CR_load where _SourceFile = '" & OpenFileDialog1.FileName & "'"
+        Dim ldaHist As New SqlDataAdapter(lCmdText, gSQLConnection)
+        Dim ldtHist As New DataTable
+        ldaHist.Fill(ldtHist)
+        If ldtHist.Rows(0)("Count") <> 0 Then
+            Dim mresp As MsgBoxResult
+            mresp = MsgBox("File " & Path.GetFileName(OpenFileDialog1.FileName) & " has already been processed." + vbCrLf + "Do you want to re-upload it?" & vbCrLf + "Last upload was on " & ldtHist.Rows(0)("StagingDate").ToString, MsgBoxStyle.Question + MsgBoxStyle.YesNo + MsgBoxStyle.DefaultButton2, "Duplicate Upload Name")
+            If mresp <> MsgBoxResult.Yes Then
+                Exit Sub
 
-
+            End If
         End If
 
         'Open source data table
@@ -197,7 +236,7 @@ Public Class UploadCRFile
                                 Case "%FileName%"
                                     txtValues &= "'" & OpenFileDialog1.FileName & "', "
                                 Case "%ImportNum%"
-                                    txtValues &= gImportNum.tostring & ", "
+                                    txtValues &= gImportNum.ToString & ", "
                                 Case "%Time%"
                                     txtValues &= "getdate(), "
                                 Case "%User%"
@@ -221,7 +260,7 @@ Public Class UploadCRFile
             Next rcptix
 
         Next TypeIX
-
+        MsgBox("Upload Complete:" & vbCrLf & OpenFileDialog1.FileName, MsgBoxStyle.OkOnly, "Complete")
         'Dim DistinctReceipts = From row In dssample.Tables(0).AsEnumerable()
         ' Select Case row.Field(Of String)(dssample.Tables(0))
 
@@ -231,15 +270,15 @@ Public Class UploadCRFile
         If txtCRFile.Text <> "" Then
             If File.Exists(txtCRFile.Text) Then
                 Try
-                    Dim dssample As New DataSet
+                    gCRDataFile = New DataSet
                     Dim CSVSelect As String = "select * from [" & Path.GetFileName(txtCRFile.Text) & "]"
                     Dim CnStr = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" & Path.GetDirectoryName(txtCRFile.Text) & ";Extended Properties=""text;HDR=Yes;FMT=Delimited"";"
 
                     Using Adp As New OleDbDataAdapter(CSVSelect, CnStr)
-                        Adp.Fill(dssample)
+                        Adp.Fill(gCRDataFile)
                     End Using
 
-                    gvData.DataSource = dssample.Tables(0)
+                    gvData.DataSource = gCRDataFile.Tables(0)
                 Catch ex As Exception
                     MsgBox(ex.Message, MsgBoxStyle.Critical, "Error in CRFile.change event.")
                 End Try
@@ -260,5 +299,10 @@ Public Class UploadCRFile
 
     Private Sub Button1_Click(sender As Object, e As EventArgs) Handles btnEditMap.Click
         frmEditMap.Show()
+
+    End Sub
+
+    Private Sub Button1_Click_1(sender As Object, e As EventArgs) Handles Button1.Click
+        cboMap_SelectedIndexChanged(sender, e)
     End Sub
 End Class

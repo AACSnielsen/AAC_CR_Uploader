@@ -32,7 +32,7 @@ Namespace My
         
         <Global.System.Diagnostics.DebuggerStepThroughAttribute()>  _
         Protected Overrides Sub OnCreateMainForm()
-            Me.MainForm = Global.AAC_CRUploader.frmEditMap
+            Me.MainForm = Global.AAC_CRUploader.UploadCRFile
         End Sub
     End Class
 End Namespace

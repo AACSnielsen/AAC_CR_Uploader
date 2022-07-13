@@ -22,6 +22,7 @@ Partial Class UploadCRFile
     'Do not modify it using the code editor.
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
+        Dim DataGridViewCellStyle1 As System.Windows.Forms.DataGridViewCellStyle = New System.Windows.Forms.DataGridViewCellStyle()
         Me.txtCRFile = New System.Windows.Forms.TextBox()
         Me.Label1 = New System.Windows.Forms.Label()
         Me.OpenFileDialog1 = New System.Windows.Forms.OpenFileDialog()
@@ -38,6 +39,7 @@ Partial Class UploadCRFile
         Me.gvData = New System.Windows.Forms.DataGridView()
         Me.chkNoUpdate = New System.Windows.Forms.CheckBox()
         Me.btnEditMap = New System.Windows.Forms.Button()
+        Me.Button1 = New System.Windows.Forms.Button()
         CType(Me.dbMap, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.dbMapz, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.gvData, System.ComponentModel.ISupportInitialize).BeginInit()
@@ -112,6 +114,7 @@ Partial Class UploadCRFile
         '
         Me.dbMap.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.dbMap.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.DisplayedCells
         Me.dbMap.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
         Me.dbMap.Location = New System.Drawing.Point(12, 133)
         Me.dbMap.Name = "dbMap"
@@ -165,6 +168,9 @@ Partial Class UploadCRFile
         Me.gvData.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
         Me.gvData.Location = New System.Drawing.Point(11, 348)
         Me.gvData.Name = "gvData"
+        DataGridViewCellStyle1.Font = New System.Drawing.Font("Consolas", 6.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.gvData.RowsDefaultCellStyle = DataGridViewCellStyle1
+        Me.gvData.RowTemplate.Height = 18
         Me.gvData.Size = New System.Drawing.Size(624, 185)
         Me.gvData.TabIndex = 13
         '
@@ -187,11 +193,21 @@ Partial Class UploadCRFile
         Me.btnEditMap.Text = "Edit Mapping"
         Me.btnEditMap.UseVisualStyleBackColor = True
         '
+        'Button1
+        '
+        Me.Button1.Image = Global.AAC_CRUploader.My.Resources.Resources.Refresh
+        Me.Button1.Location = New System.Drawing.Point(597, 4)
+        Me.Button1.Name = "Button1"
+        Me.Button1.Size = New System.Drawing.Size(23, 23)
+        Me.Button1.TabIndex = 16
+        Me.Button1.UseVisualStyleBackColor = True
+        '
         'UploadCRFile
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(676, 577)
+        Me.Controls.Add(Me.Button1)
         Me.Controls.Add(Me.btnEditMap)
         Me.Controls.Add(Me.chkNoUpdate)
         Me.Controls.Add(Me.gvData)
@@ -233,4 +249,5 @@ Partial Class UploadCRFile
     Friend WithEvents gvData As DataGridView
     Friend WithEvents chkNoUpdate As CheckBox
     Friend WithEvents btnEditMap As Button
+    Friend WithEvents Button1 As Button
 End Class
