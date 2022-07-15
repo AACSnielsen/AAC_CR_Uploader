@@ -34,13 +34,14 @@ Public Class UploadCRFile
         Next argIx
 
         FormLoad = True
-        Dim lServer As String = "" '= "SDN-ENVY-2020\SDN_HPENVY"
-        Dim lDatabase As String = "" '= "TestDB"
+
         gSQLConnection = New SqlClient.SqlConnection
         Dim lConnectionString As String
         btnOpen.Enabled = False
         txtCRFile.Enabled = False
 
+        Dim lServer As String = "" '= "SDN-ENVY-2020\SDN_HPENVY"
+        Dim lDatabase As String = "" '= "TestDB"
         Dim AppPath As String = System.AppDomain.CurrentDomain.BaseDirectory()
         If File.Exists(AppPath & "Instance.config") Then 'Get connection info
             Dim ConfigXML As New XmlDocument() 'XDocument = XDocument.Load(AppPath & "Instance.config")
@@ -268,7 +269,9 @@ Public Class UploadCRFile
 
     Private Sub txtCRFile_TextChanged(sender As Object, e As EventArgs) Handles txtCRFile.TextChanged
         If txtCRFile.Text <> "" Then
-            If File.Exists(txtCRFile.Text) Then
+            Dim fileobject As FileInfo
+            fileobject = New FileInfo(txtCRFile.Text)
+            If fileobject.Exists Then
                 Try
                     gCRDataFile = New DataSet
                     Dim CSVSelect As String = "select * from [" & Path.GetFileName(txtCRFile.Text) & "]"
@@ -282,9 +285,7 @@ Public Class UploadCRFile
                 Catch ex As Exception
                     MsgBox(ex.Message, MsgBoxStyle.Critical, "Error in CRFile.change event.")
                 End Try
-
             End If
-
         End If
 
 

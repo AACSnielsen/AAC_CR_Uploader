@@ -13,38 +13,49 @@ Public Class SQLControl
     Public RecordCount As Integer
     Public Exception As String
 
-    Public Sub ExecQuery(pQuery As String)
+    Public Sub ExecQuery(pQuery As String, pConnection As SqlConnection)
+        Dim MyOpen As Boolean = False
         Try
-            SqlConnection.Open()
-
-            sqlcmd = New SqlCommand(pQuery, SqlConnection)
+            If pConnection.State <> ConnectionState.Open Then
+                pConnection.Open()
+                MyOpen = True
+            End If
+            sqlcmd = New SqlCommand(pQuery, pConnection)
             Params.ForEach(Sub(x) sqlcmd.Parameters.Add(x))
             Params.Clear()
 
             sqlds = New DataSet
             sqlda = New SqlDataAdapter(sqlcmd)
             RecordCount = sqlda.Fill(sqlds)
-            SqlConnection.Close()
+            If MyOpen Then
+                pConnection.Close()
+            End If
         Catch ex As Exception
             MsgBox(ex.Message, MsgBoxStyle.Critical, "Error in ExecQuery.")
         End Try
-        If SqlConnection.State = ConnectionState.Open Then
+        If SqlConnection.State = ConnectionState.Open And MyOpen Then
             SqlConnection.Close()
         End If
     End Sub
-    Public Sub ExecCmd(pQuery As String)
+    Public Sub ExecCmd(pQuery As String, pConnection As SqlConnection)
+        Dim MyOpen As Boolean = False
         Try
-            SqlConnection.Open()
-            sqlcmd = New SqlCommand(pQuery, SqlConnection)
+            If pConnection.State <> ConnectionState.Open Then
+                pConnection.Open()
+                MyOpen = True
+            End If
+            sqlcmd = New SqlCommand(pQuery, pConnection)
             Params.ForEach(Sub(x) sqlcmd.Parameters.Add(x))
             Params.Clear()
 
             sqlcmd.ExecuteNonQuery()
-            SqlConnection.Close()
+            If MyOpen Then
+                pConnection.Close()
+            End If
         Catch ex As Exception
             MsgBox(ex.Message, MsgBoxStyle.Critical, "Error in ExecCmd.")
         End Try
-        If SqlConnection.State = ConnectionState.Open Then
+        If SqlConnection.State = ConnectionState.Open And MyOpen Then
             SqlConnection.Close()
         End If
     End Sub

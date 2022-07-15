@@ -39,9 +39,13 @@ Partial Class frmEditMap
         '
         'dbMap
         '
+        Me.dbMap.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
+            Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
         Me.dbMap.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
         Me.dbMap.Location = New System.Drawing.Point(12, 122)
+        Me.dbMap.MultiSelect = False
         Me.dbMap.Name = "dbMap"
+        Me.dbMap.RowHeadersVisible = False
         Me.dbMap.Size = New System.Drawing.Size(476, 319)
         Me.dbMap.TabIndex = 0
         '
@@ -91,6 +95,8 @@ Partial Class frmEditMap
         '
         'lbAvailableFields
         '
+        Me.lbAvailableFields.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
+            Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
         Me.lbAvailableFields.FormattingEnabled = True
         Me.lbAvailableFields.Location = New System.Drawing.Point(510, 122)
         Me.lbAvailableFields.Name = "lbAvailableFields"

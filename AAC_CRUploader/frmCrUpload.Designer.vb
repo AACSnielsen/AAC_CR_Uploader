@@ -23,6 +23,7 @@ Partial Class UploadCRFile
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
         Dim DataGridViewCellStyle1 As System.Windows.Forms.DataGridViewCellStyle = New System.Windows.Forms.DataGridViewCellStyle()
+        Dim DataGridViewCellStyle2 As System.Windows.Forms.DataGridViewCellStyle = New System.Windows.Forms.DataGridViewCellStyle()
         Me.txtCRFile = New System.Windows.Forms.TextBox()
         Me.Label1 = New System.Windows.Forms.Label()
         Me.OpenFileDialog1 = New System.Windows.Forms.OpenFileDialog()
@@ -114,11 +115,18 @@ Partial Class UploadCRFile
         '
         Me.dbMap.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.dbMap.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.DisplayedCells
+        Me.dbMap.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells
+        Me.dbMap.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCells
         Me.dbMap.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
         Me.dbMap.Location = New System.Drawing.Point(12, 133)
+        Me.dbMap.MultiSelect = False
         Me.dbMap.Name = "dbMap"
         Me.dbMap.ReadOnly = True
+        Me.dbMap.RowHeadersVisible = False
+        DataGridViewCellStyle1.Font = New System.Drawing.Font("Consolas", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.dbMap.RowsDefaultCellStyle = DataGridViewCellStyle1
+        Me.dbMap.RowTemplate.Height = 18
+        Me.dbMap.RowTemplate.ReadOnly = True
         Me.dbMap.Size = New System.Drawing.Size(624, 147)
         Me.dbMap.TabIndex = 8
         '
@@ -137,8 +145,10 @@ Partial Class UploadCRFile
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.dbMapz.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
         Me.dbMapz.Location = New System.Drawing.Point(12, 68)
+        Me.dbMapz.MultiSelect = False
         Me.dbMapz.Name = "dbMapz"
         Me.dbMapz.ReadOnly = True
+        Me.dbMapz.RowHeadersVisible = False
         Me.dbMapz.Size = New System.Drawing.Size(624, 46)
         Me.dbMapz.TabIndex = 10
         '
@@ -162,15 +172,20 @@ Partial Class UploadCRFile
         '
         'gvData
         '
-        Me.gvData.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
+        Me.gvData.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
+            Or System.Windows.Forms.AnchorStyles.Left) _
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.gvData.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells
+        Me.gvData.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCells
         Me.gvData.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
         Me.gvData.Location = New System.Drawing.Point(11, 348)
+        Me.gvData.MultiSelect = False
         Me.gvData.Name = "gvData"
-        DataGridViewCellStyle1.Font = New System.Drawing.Font("Consolas", 6.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.gvData.RowsDefaultCellStyle = DataGridViewCellStyle1
-        Me.gvData.RowTemplate.Height = 18
+        Me.gvData.ReadOnly = True
+        Me.gvData.RowHeadersVisible = False
+        DataGridViewCellStyle2.Font = New System.Drawing.Font("Consolas", 6.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.gvData.RowsDefaultCellStyle = DataGridViewCellStyle2
+        Me.gvData.RowTemplate.ReadOnly = True
         Me.gvData.Size = New System.Drawing.Size(624, 185)
         Me.gvData.TabIndex = 13
         '
@@ -183,6 +198,7 @@ Partial Class UploadCRFile
         Me.chkNoUpdate.TabIndex = 14
         Me.chkNoUpdate.Text = "No SQL Updates"
         Me.chkNoUpdate.UseVisualStyleBackColor = True
+        Me.chkNoUpdate.Visible = False
         '
         'btnEditMap
         '
