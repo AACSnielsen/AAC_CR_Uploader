@@ -190,8 +190,7 @@ Public Class UploadCRFile
         End If
 
 
-
-        'Open source data table
+        'Open source data table                                                                                      dtCRData
         Dim dtCRData As New DataTable ' This is the full contents
         Dim strCRSelect As String = "select * from [" & Path.GetFileName(OpenFileDialog1.FileName) & "]"
         Dim csvConnection = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" & Path.GetDirectoryName(OpenFileDialog1.FileName) & ";Extended Properties=""text;HDR=Yes;FMT=Delimited"";"
@@ -199,69 +198,56 @@ Public Class UploadCRFile
             csvDataAdapter.Fill(dtCRData)
         End Using
 
+        ' For each type, get distinct values for mapped columns                                                         distinctRcptHeaders.
+        Dim distinctRcptHeaders As DataTable = GetDistinctRows("R", dtCRData)
+        'distinctRcptHeaders = GetDistinctRows("R", dtCRData)
+        Dim dtRcptHeaderMap As DataTable = GetTypeMap("R")
 
-        Dim ColumnList As New List(Of String)
-
-        'Get list of all source columns mapped for R type                                                               ONE
-        'Dim RTypeColumnFilter As String = "ApplicationType = 'R' and DataType = 'L'"
-        'Dim RSourceRowsMatchingType As DataRow() = gdtMap.Select(RTypeColumnFilter)
-        'Dim dtRType As DataTable = gdtMap.Clone()
-        'dtRType = RSourceRowsMatchingType.CopyToDataTable
-        '' At this point dtThisType should have the mapping for the iterative data type (R, B, ...)
-        '' Process each row in the dtThistype mapping against all (distinct) input rows to write to database table
-        ''  First set column list to select:
-        'ColumnList = New List(Of String)
-        'For ColIX = 0 To dtRType.Rows.Count - 1
-        '    ColumnList.Add(dtRType.Rows(ColIX)("SourceColumnLabel"))
-        'Next ColIX
-        ''Get all R type data (Distinct values for mapped columns)
-        'Dim distinctRcptHeaders As DataTable = dtCRData.DefaultView.ToTable(True, ColumnList.ToArray())
-
-
-        'DisplayDT(distinctRcptHeaders, 100) ' DEBUG   DEBUG   DEBUG   DEBUG   DEBUG
-
-        ' For each type, get distinct values for mapped columns                                                         TWO
-        Dim distinctRcptHeaders As DataTable
-        distinctRcptHeaders = GetDistinctRows("R", dtCRData)
-
-
+        ' For each type, get distinct values for mapped columns and get mapping                                                         distinctRcptRowsThisType  I (Bills)
         Dim ThisType As String = "I"
         Dim distinctRcptRowsThisType As DataTable
         distinctRcptRowsThisType = GetDistinctRows(ThisType, dtCRData)
-
+        Dim dtThistypeMap As DataTable = GetTypeMap(ThisType)
+        'DisplayDT(dtThistypeMap, 100)
         '' Get distinct values of all mapped columns for thistype 
-        'RTypeColumnFilter = "ApplicationType = '" & ThisType & "' and DataType = 'L'"
-        Dim SourceColumnsThisType As DataRow() '= gdtMap.Select(RTypeColumnFilter)
-        Dim dtThisType As DataTable = gdtMap.Clone()
-        'dtThisType = SourceColumnsThisType.CopyToDataTable
 
-        'ColumnList = New List(Of String)
-        'For ColIX = 0 To dtThisType.Rows.Count - 1
-        '    ColumnList.Add(dtThisType.Rows(ColIX)("SourceColumnLabel"))
-        'Next ColIX
-        'Dim distinctRcptRowsThisType As DataTable = dtCRData.DefaultView.ToTable(True, ColumnList.ToArray())
-        'DisplayDT(distinctRcptRowsThisType, 100) ' DEBUG   DEBUG   DEBUG   DEBUG   DEBUG
+        'Dim SourceColumnsThisType As DataRow() '= gdtMap.Select(RTypeColumnFilter)
+        'Dim dtThisType As DataTable = gdtMap.Clone()
 
-        ' then loop through for each subset matching the ReceiptKeyColumn                                               THREE
+        ' then loop through for each subset matching the ReceiptKeyColumn                                               Process all R Receipts
+        Dim ThisTypeThisReceipt As DataTable
         Dim distinctRcptHeader As DataRow
         Dim TypeFilter As String = ""
-        For Each distinctRcptHeader In distinctRcptHeaders.Rows
-            Debug.Print("Start Processing:" & distinctRcptHeader(ReceiptKeyColumn).ToString)
-            ' Get distinct values for each row matching this {ReceiptKeyColumn}  and " & ReceiptKeyColumn &
-            Dim ThisTypeThisReceipt As DataTable
+        For Each distinctRcptHeader In distinctRcptHeaders.Rows   '                                                      Receipt Header Loop
+            'Write R row followed by all details rows mapped
+            '  distinctRcptHeader is the current receipt header data
 
+            Debug.Print("Start Processing:" & distinctRcptHeader(ReceiptKeyColumn).ToString)
+            'Write HeaderRow to SQL
+            WriteDataViaMap(distinctRcptHeader, dtRcptHeaderMap)
+
+            'Filter I rows and write to SQL
             TypeFilter = "[" & ReceiptKeyColumn & "] = '" & distinctRcptHeader(ReceiptKeyColumn).ToString & "'"
             Dim SourceRowsMatchingType As DataRow() = distinctRcptRowsThisType.Select(TypeFilter)
-            ThisTypeThisReceipt = SourceRowsMatchingType.CopyToDataTable
-            DisplayDT(ThisTypeThisReceipt, 100) ' DEBUG   DEBUG   DEBUG   DEBUG   DEBUG
+            'ThisTypeThisReceipt = SourceRowsMatchingType.CopyToDataTable
+            ThisTypeThisReceipt = GetDistinctRows("I", dtCRData, distinctRcptHeader(ReceiptKeyColumn).ToString)
+            'DisplayDT(ThisTypeThisReceipt, 100) ' DEBUG   DEBUG   DEBUG   DEBUG   DEBUG
+            Dim ItemDatarow As DataRow
+            For Each ItemDatarow In ThisTypeThisReceipt.Rows
+                WriteDataViaMap(ItemDatarow, dtThistypeMap)
+            Next
 
+            'ThisTypeThisReceipt is the set of rows for ThisType designated for this receipt key
+
+            ' Process the map for this type against the ThisTypeThisReceipt datatable
 
         Next
 
 
 
-
-
+        ' OLD CODE BELOW
+        Dim dtThisType As DataTable
+        Dim ColumnList As New List(Of String)
         Dim distinctTypes As DataTable = gdtMap.DefaultView.ToTable(True, "ApplicationType") 'TRUE implies distinct here
         '''' distinctTypes e.g. "R" and "B"
         For TypeIX = 0 To distinctTypes.Rows.Count - 1
@@ -323,6 +309,7 @@ Public Class UploadCRFile
                                     txtValues &= "Suser_Sname(), "
                                 Case "%TranLine%"
                                     txtValues &= ReceiptLineSeq.ToString + ", "
+
                                 Case Else
                                     txtValues &= "'" & dtThisType.Rows(colix)("SourceColumnLabel") & "', "
                             End Select
@@ -345,13 +332,53 @@ Public Class UploadCRFile
         ' Select Case row.Field(Of String)(dssample.Tables(0))
 
     End Sub
-    Function GetDistinctRows(pType As String, pDataSource As DataTable) As DataTable
+    Sub WriteDataViaMap(pDataRow As DataRow, pMapTable As DataTable)
+        Dim txtPreamble As String = "insert into _aac_CR_LOAD ("
+        Dim txtValues As String = ""
+        For ColIX = 0 To pMapTable.Rows.Count - 1
+            txtPreamble &= (pMapTable.Rows(ColIX)("TargetColumn")) + ", "
+        Next ColIX
+        txtPreamble = txtPreamble.Substring(0, txtPreamble.Length - 2) & ")" & vbCrLf
+        txtValues = "Values ("
+        For colix = 0 To pMapTable.Rows.Count - 1
+            Select Case pMapTable.Rows(colix)("DataType")
+                Case "K" ' C(K)onstant
+                    txtValues &= "'" & (pMapTable.Rows(colix)("SourceColumnLabel")) & "', "
+                Case "R" 'Replacement Variable
+                    Select Case (pMapTable.Rows(colix)("SourceColumnLabel"))
+                        Case "%FileName%"
+                            txtValues &= "'" & OpenFileDialog1.FileName & "', "
+                        Case "%ImportNum%"
+                            txtValues &= gImportNum.ToString & ", "
+                        Case "%Time%"
+                            txtValues &= "getdate(), "
+                        Case "%User%"
+                            txtValues &= "Suser_Sname(), "
+                        Case "%LineNum%"
+                            txtValues &= "0, " 'ReceiptLineSeq.ToString + ", "
+                        Case "%TranLine%"
+                            'txtValues &= ReceiptLineSeq.ToString + ", "
+                            txtValues &= 0.ToString + ", "
+                        Case Else
+                            txtValues &= "'" & pMapTable.Rows(colix)("SourceColumnLabel") & "', "
+                    End Select
+                Case Else
+                    txtValues &= "'" & pDataRow(pMapTable.Rows(colix)("SourceColumnLabel")) & "', "
+            End Select
+
+        Next colix
+        txtValues = txtValues.Substring(0, txtValues.Length - 2) & ")"
+        Debug.Print(txtPreamble & txtValues)
+    End Sub
+
+    Function GetDistinctRows(pType As String, pDataSource As DataTable, Optional pReceiptID As String = "") As DataTable
         ' For each type, get distinct values for mapped columns                                                         TWO
         Dim ThisType As String = pType
         Dim RTypeColumnFilter As String
         Dim ColumnList As New List(Of String)
         ' Get distinct values of all mapped columns for thistype 
         RTypeColumnFilter = "ApplicationType = '" & ThisType & "' and DataType = 'L'"
+
         Dim SourceColumnsThisType As DataRow() = gdtMap.Select(RTypeColumnFilter)
         Dim dtThisType As DataTable = gdtMap.Clone()
         dtThisType = SourceColumnsThisType.CopyToDataTable
@@ -362,8 +389,22 @@ Public Class UploadCRFile
         Next ColIX
 
         Dim distinctRcptRowsThisType As DataTable = pDataSource.DefaultView.ToTable(True, ColumnList.ToArray())
-        DisplayDT(distinctRcptRowsThisType, 100) ' DEBUG   DEBUG   DEBUG   DEBUG   DEBUG
-        GetDistinctRows = distinctRcptRowsThisType
+        ' DisplayDT(distinctRcptRowsThisType, 100) ' DEBUG   DEBUG   DEBUG   DEBUG   DEBUG
+        If pReceiptID <> "" Then
+            RTypeColumnFilter = "[" & ReceiptKeyColumn & "] = '" & pReceiptID & "'"
+            GetDistinctRows = distinctRcptRowsThisType.Select(RTypeColumnFilter).CopyToDataTable
+        Else
+            GetDistinctRows = distinctRcptRowsThisType
+        End If
+    End Function
+
+    Function GetTypeMap(pType As String) As DataTable
+        'Update the map to include all columns
+        Dim TypeFilter As String
+        Dim SourceRowsMatchingType As DataRow()
+        TypeFilter = "ApplicationType = '" & pType & "' and DataType <> ''"
+        SourceRowsMatchingType = gdtMap.Select(TypeFilter)
+        GetTypeMap = SourceRowsMatchingType.CopyToDataTable
     End Function
 
 
