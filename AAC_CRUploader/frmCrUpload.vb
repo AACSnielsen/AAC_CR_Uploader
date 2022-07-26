@@ -6,14 +6,14 @@ Imports System.Xml
 
 Public Class UploadCRFile
     Protected Friend FormLoad As Boolean
-    Protected Friend ReceiptId As String
+    Protected Friend ReceiptKeyColumn As String
     Protected Friend gdtMap As DataTable
     Protected Friend gImportNum As Integer = -1
     Protected Friend gAutoRun As Boolean = False
     Protected Friend gAutoFile As String = ""
     Protected Friend gAutoMap As String = ""
     Protected Friend gSQLConnection As SqlConnection
-
+    Protected Friend gdtReceipts As DataTable
     Protected Friend gCRDataFile As New DataSet
 
 
@@ -58,7 +58,7 @@ Public Class UploadCRFile
         lConnectionString = "Server=" & lServer & "; Database=" & lDatabase & ";Integrated Security=SSPI;"
         gSQLConnection.ConnectionString = lConnectionString
         gSQLConnection.Open()
-        Dim lCmdText As String = "Select Mapcode, MapDesc, FileMask, FileType from _aac_CRMAPZ where inactive <> 'Y'"
+        Dim lCmdText As String = "Select Mapcode, MapDesc, FileMask, TargetTable, FileType from _aac_CRMAPZ where inactive <> 'Y'"
 
         Dim ldaMaps As New SqlDataAdapter(lCmdText, gSQLConnection)
         Dim ldtMaps As New DataTable
@@ -85,9 +85,8 @@ Public Class UploadCRFile
         If gAutoRun Then
             btnUpload_Click(sender, e)
             btnClose_Click(sender, e)
-
-
         End If
+        cboMap_SelectedIndexChanged(sender, e)
     End Sub
 
     Private Sub btnOpen_Click(sender As Object, e As EventArgs) Handles btnOpen.Click
@@ -120,9 +119,9 @@ Public Class UploadCRFile
                         "CREATE SEQUENCE [Sequence].[Import_Num]  START WITH 1"
                 Dim lcmd As New SqlCommand(lCmdText, gSQLConnection)
                 lcmd.ExecuteNonQuery()
-
+                'TODO REMAP TO CUSTOM TABLE FOR NEXT BATCH NUMBER  !!!!
                 lCmdText = "Select Mapcode, ApplicationType, SourceColumnLabel, TargetColumn, DataType from _aac_CRMAP where mapcode = '" & cboMap.SelectedValue & "' order by applicationType DESC;" &
-                       "Select MapCode, MapDesc, FileMask, FileType, ReceiptID from _aac_crmapz where mapcode = '" & cboMap.SelectedValue & "';" &
+                       "Select MapCode, MapDesc, FileMask, TargetTable, FileType, ReceiptID from _aac_crmapz where mapcode = '" & cboMap.SelectedValue & "';" &
                        "Select next value for sequence.import_num as Import_Num from _aac_crmap where mapcode = '" & cboMap.SelectedValue & "' and sourcecolumnlabel = '%ImportNum%';"
                 Dim ldaMap As New SqlDataAdapter(lCmdText, gSQLConnection)
                 Dim ldsMap = New DataSet
@@ -132,7 +131,7 @@ Public Class UploadCRFile
                 dbMap.DataSource = gdtMap
 
                 dbMapz.DataSource = ldsMap.Tables(1)
-                ReceiptId = ldsMap.Tables(1).Rows(0)("ReceiptID") 'Get identifier for receipt object
+                ReceiptKeyColumn = ldsMap.Tables(1).Rows(0)("ReceiptID") 'Get identifier for receipt object
                 OpenFileDialog1.Filter = "CR IMport Files|" & ldsMap.Tables(1).Rows(0)("FileMask") 'Get identifier for receipt object
 
                 If ldsMap.Tables(2).Rows.Count > 0 Then
@@ -162,12 +161,23 @@ Public Class UploadCRFile
 
     Private Sub btnUpload_Click(sender As Object, e As EventArgs) Handles btnUpload.Click
         ' ldtMap hold the current mapping spec.  This includes multiple ApplicationType mappings.
-        ' Application types include, among others, 'R'eceipts Headers, 'A'pplications to BIlls
+        ' Application types include, among others, 'R'eceipts Headers, 'A'pplications to 'B'Ills
         '  Get distinct types from mapping,  then for each type, get disctinct values
+
+        ' 7/16 - will assume each file should be it's own session.
+        ' R types will create an R row in the staging table. THere should be one R row per check - correspondes to CRT_CASH row
+        ' B' types will be an bill invoice payment and correspond to BLT_BILL_AMT CR trans - Can be multiple per R type.  Shares receipt ID linkint B to R
+        '
+        '' --Define datatable to hold receipt data
+        'gdtReceipts = New DataTable()
+        'gdtReceipts.Columns.Add("ReceiptId", System.Type.GetType("System.String"))
+        'gdtReceipts.Columns.Add("ReceiptNum", System.Type.GetType("System.Int32"))
+
         Dim lcmd As New SqlCommand
         lcmd.Connection = gSQLConnection
 
-        Dim lCmdText As String = "select count(*) as 'Count', max(_StagingDate) 'StagingDate' from _aac_CR_load where _SourceFile = '" & OpenFileDialog1.FileName & "'"
+        ' // Test if file has already been processed by checking if it is in the load file //
+        Dim lCmdText As String = "Select count(*) As 'Count', max(_StagingDate) 'StagingDate' from _aac_CR_load where _SourceFile = '" & OpenFileDialog1.FileName & "'"
         Dim ldaHist As New SqlDataAdapter(lCmdText, gSQLConnection)
         Dim ldtHist As New DataTable
         ldaHist.Fill(ldtHist)
@@ -175,13 +185,14 @@ Public Class UploadCRFile
             Dim mresp As MsgBoxResult
             mresp = MsgBox("File " & Path.GetFileName(OpenFileDialog1.FileName) & " has already been processed." + vbCrLf + "Do you want to re-upload it?" & vbCrLf + "Last upload was on " & ldtHist.Rows(0)("StagingDate").ToString, MsgBoxStyle.Question + MsgBoxStyle.YesNo + MsgBoxStyle.DefaultButton2, "Duplicate Upload Name")
             If mresp <> MsgBoxResult.Yes Then
-                Exit Sub
-
+                Exit Sub '  Do not want to re-process - get out of this routine
             End If
         End If
 
+
+
         'Open source data table
-        Dim dtCRData As New DataTable
+        Dim dtCRData As New DataTable ' This is the full contents
         Dim strCRSelect As String = "select * from [" & Path.GetFileName(OpenFileDialog1.FileName) & "]"
         Dim csvConnection = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" & Path.GetDirectoryName(OpenFileDialog1.FileName) & ";Extended Properties=""text;HDR=Yes;FMT=Delimited"";"
         Using csvDataAdapter As New OleDbDataAdapter(strCRSelect, csvConnection)
@@ -189,26 +200,94 @@ Public Class UploadCRFile
         End Using
 
 
-        Dim distinctTypes As DataTable = gdtMap.DefaultView.ToTable(True, "ApplicationType")
-        For TypeIX = 0 To distinctTypes.Rows.Count - 1
-            Debug.Print("Processing Type = " & distinctTypes.Rows(TypeIX)(0).ToString)
-            'Get distinct mapping rows for select map and type
-            Dim TypeFilter As String = "ApplicationType = '" & distinctTypes.Rows(TypeIX)(0).ToString & "' and DataType = 'L'"
-            Dim ThisTypeRows As DataRow() = gdtMap.Select(TypeFilter)
-            Dim dtThisType As DataTable = gdtMap.Clone()
-            dtThisType = ThisTypeRows.CopyToDataTable
-            ' At this point dtThisType should have the mapping for the iterative data type (R, B, ...)
-            ' Process each row in the dtThistype mapping against all (distinct) input rows to write to database table
-            '  First set column list to select:
-            Dim ColumnList As New List(Of String)
-            For ColIX = 0 To dtThisType.Rows.Count - 1
-                ColumnList.Add(dtThisType.Rows(ColIX)("SourceColumnLabel"))
-            Next ColIX
+        Dim ColumnList As New List(Of String)
 
-            'Update the map to include all columns
-            TypeFilter = "ApplicationType = '" & distinctTypes.Rows(TypeIX)(0).ToString & "' and DataType <> ''"
-            ThisTypeRows = gdtMap.Select(TypeFilter)
-            dtThisType = ThisTypeRows.CopyToDataTable
+        'Get list of all source columns mapped for R type                                                               ONE
+        'Dim RTypeColumnFilter As String = "ApplicationType = 'R' and DataType = 'L'"
+        'Dim RSourceRowsMatchingType As DataRow() = gdtMap.Select(RTypeColumnFilter)
+        'Dim dtRType As DataTable = gdtMap.Clone()
+        'dtRType = RSourceRowsMatchingType.CopyToDataTable
+        '' At this point dtThisType should have the mapping for the iterative data type (R, B, ...)
+        '' Process each row in the dtThistype mapping against all (distinct) input rows to write to database table
+        ''  First set column list to select:
+        'ColumnList = New List(Of String)
+        'For ColIX = 0 To dtRType.Rows.Count - 1
+        '    ColumnList.Add(dtRType.Rows(ColIX)("SourceColumnLabel"))
+        'Next ColIX
+        ''Get all R type data (Distinct values for mapped columns)
+        'Dim distinctRcptHeaders As DataTable = dtCRData.DefaultView.ToTable(True, ColumnList.ToArray())
+
+
+        'DisplayDT(distinctRcptHeaders, 100) ' DEBUG   DEBUG   DEBUG   DEBUG   DEBUG
+
+        ' For each type, get distinct values for mapped columns                                                         TWO
+        Dim distinctRcptHeaders As DataTable
+        distinctRcptHeaders = GetDistinctRows("R", dtCRData)
+
+
+        Dim ThisType As String = "I"
+        Dim distinctRcptRowsThisType As DataTable
+        distinctRcptRowsThisType = GetDistinctRows(ThisType, dtCRData)
+
+        '' Get distinct values of all mapped columns for thistype 
+        'RTypeColumnFilter = "ApplicationType = '" & ThisType & "' and DataType = 'L'"
+        Dim SourceColumnsThisType As DataRow() '= gdtMap.Select(RTypeColumnFilter)
+        Dim dtThisType As DataTable = gdtMap.Clone()
+        'dtThisType = SourceColumnsThisType.CopyToDataTable
+
+        'ColumnList = New List(Of String)
+        'For ColIX = 0 To dtThisType.Rows.Count - 1
+        '    ColumnList.Add(dtThisType.Rows(ColIX)("SourceColumnLabel"))
+        'Next ColIX
+        'Dim distinctRcptRowsThisType As DataTable = dtCRData.DefaultView.ToTable(True, ColumnList.ToArray())
+        'DisplayDT(distinctRcptRowsThisType, 100) ' DEBUG   DEBUG   DEBUG   DEBUG   DEBUG
+
+        ' then loop through for each subset matching the ReceiptKeyColumn                                               THREE
+        Dim distinctRcptHeader As DataRow
+        Dim TypeFilter As String = ""
+        For Each distinctRcptHeader In distinctRcptHeaders.Rows
+            Debug.Print("Start Processing:" & distinctRcptHeader(ReceiptKeyColumn).ToString)
+            ' Get distinct values for each row matching this {ReceiptKeyColumn}  and " & ReceiptKeyColumn &
+            Dim ThisTypeThisReceipt As DataTable
+
+            TypeFilter = "[" & ReceiptKeyColumn & "] = '" & distinctRcptHeader(ReceiptKeyColumn).ToString & "'"
+            Dim SourceRowsMatchingType As DataRow() = distinctRcptRowsThisType.Select(TypeFilter)
+            ThisTypeThisReceipt = SourceRowsMatchingType.CopyToDataTable
+            DisplayDT(ThisTypeThisReceipt, 100) ' DEBUG   DEBUG   DEBUG   DEBUG   DEBUG
+
+
+        Next
+
+
+
+
+
+        Dim distinctTypes As DataTable = gdtMap.DefaultView.ToTable(True, "ApplicationType") 'TRUE implies distinct here
+        '''' distinctTypes e.g. "R" and "B"
+        For TypeIX = 0 To distinctTypes.Rows.Count - 1
+            ''    Debug.Print("Processing Type = " & distinctTypes.Rows(TypeIX)(0).ToString)
+            ''    ' ??If type = R build table of distinct receipts,  if not R, retrieve distinct receipt num
+
+
+            ''    'Get distinct mapping rows for select map and type
+            ''    ''Dim TypeFilter As String = "ApplicationType = '" & distinctTypes.Rows(TypeIX)(0).ToString & "' and DataType = 'L'"
+            Dim SourceRowsMatchingType As DataRow() = gdtMap.Select(TypeFilter)
+            ''    '' ''Dim dtThisType As DataTable = gdtMap.Clone()
+            ''    dtThisType = SourceRowsMatchingType.CopyToDataTable
+            ''    ' At this point dtThisType should have the mapping for the iterative data type (R, B, ...)
+            ''    ' Process each row in the dtThistype mapping against all (distinct) input rows to write to database table
+            ''    '  First set column list to select:
+            ''    ColumnList = New List(Of String)
+            ''    For ColIX = 0 To dtThisType.Rows.Count - 1
+            ''        ColumnList.Add(dtThisType.Rows(ColIX)("SourceColumnLabel"))
+            ''    Next ColIX
+
+            ''    'Update the map to include all columns
+            ''    TypeFilter = "ApplicationType = '" & distinctTypes.Rows(TypeIX)(0).ToString & "' and DataType <> ''"
+            ''    SourceRowsMatchingType = gdtMap.Select(TypeFilter)
+            dtThisType = SourceRowsMatchingType.CopyToDataTable
+
+
             Dim txtPreamble As String = "insert into _aac_CR_LOAD ("
             Dim txtValues As String = ""
             For ColIX = 0 To dtThisType.Rows.Count - 1
@@ -222,9 +301,9 @@ Public Class UploadCRFile
             Dim distinctRcpt As DataTable = dtCRData.DefaultView.ToTable(True, ColumnList.ToArray())
 
             For rcptix = 0 To distinctRcpt.Rows.Count - 1
-                If CurrReceiptID <> distinctRcpt.Rows(rcptix)(ReceiptId) Then
+                If CurrReceiptID <> distinctRcpt.Rows(rcptix)(ReceiptKeyColumn) Then
                     ReceiptLineSeq = 0
-                    CurrReceiptID = distinctRcpt.Rows(rcptix)(ReceiptId)
+                    CurrReceiptID = distinctRcpt.Rows(rcptix)(ReceiptKeyColumn)
                 End If
                 ReceiptLineSeq += 1
                 txtValues = "Values ("
@@ -266,7 +345,48 @@ Public Class UploadCRFile
         ' Select Case row.Field(Of String)(dssample.Tables(0))
 
     End Sub
+    Function GetDistinctRows(pType As String, pDataSource As DataTable) As DataTable
+        ' For each type, get distinct values for mapped columns                                                         TWO
+        Dim ThisType As String = pType
+        Dim RTypeColumnFilter As String
+        Dim ColumnList As New List(Of String)
+        ' Get distinct values of all mapped columns for thistype 
+        RTypeColumnFilter = "ApplicationType = '" & ThisType & "' and DataType = 'L'"
+        Dim SourceColumnsThisType As DataRow() = gdtMap.Select(RTypeColumnFilter)
+        Dim dtThisType As DataTable = gdtMap.Clone()
+        dtThisType = SourceColumnsThisType.CopyToDataTable
 
+        ColumnList = New List(Of String)
+        For ColIX = 0 To dtThisType.Rows.Count - 1
+            ColumnList.Add(dtThisType.Rows(ColIX)("SourceColumnLabel"))
+        Next ColIX
+
+        Dim distinctRcptRowsThisType As DataTable = pDataSource.DefaultView.ToTable(True, ColumnList.ToArray())
+        DisplayDT(distinctRcptRowsThisType, 100) ' DEBUG   DEBUG   DEBUG   DEBUG   DEBUG
+        GetDistinctRows = distinctRcptRowsThisType
+    End Function
+
+
+
+    Sub DisplayDT(Pdt As DataTable, pMaxRows As Integer)
+        If pMaxRows > Pdt.Rows.Count Then
+            pMaxRows = Pdt.Rows.Count
+        End If
+
+        Dim DebugLine As String = ""
+        For c = 0 To Pdt.Columns.Count - 1
+            DebugLine &= Pdt.Columns(c).ColumnName & "|"
+        Next c
+        Debug.Print(DebugLine)
+        DebugLine = ""
+        For r = 0 To pMaxRows - 1
+            For c = 0 To Pdt.Columns.Count - 1
+                DebugLine &= Pdt.Rows(r)(c) & "|"
+            Next c
+            Debug.Print(DebugLine)
+            DebugLine = ""
+        Next r
+    End Sub
     Private Sub txtCRFile_TextChanged(sender As Object, e As EventArgs) Handles txtCRFile.TextChanged
         If txtCRFile.Text <> "" Then
             Dim fileobject As FileInfo

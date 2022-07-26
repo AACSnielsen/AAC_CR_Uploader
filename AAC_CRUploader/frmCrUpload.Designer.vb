@@ -48,9 +48,11 @@ Partial Class UploadCRFile
         '
         'txtCRFile
         '
+        Me.txtCRFile.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
+            Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.txtCRFile.Location = New System.Drawing.Point(107, 297)
         Me.txtCRFile.Name = "txtCRFile"
-        Me.txtCRFile.Size = New System.Drawing.Size(472, 20)
+        Me.txtCRFile.Size = New System.Drawing.Size(777, 20)
         Me.txtCRFile.TabIndex = 0
         '
         'Label1
@@ -68,8 +70,9 @@ Partial Class UploadCRFile
         '
         'btnOpen
         '
+        Me.btnOpen.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.btnOpen.Font = New System.Drawing.Font("Microsoft Sans Serif", 6.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.btnOpen.Location = New System.Drawing.Point(585, 298)
+        Me.btnOpen.Location = New System.Drawing.Point(890, 298)
         Me.btnOpen.Name = "btnOpen"
         Me.btnOpen.Size = New System.Drawing.Size(21, 20)
         Me.btnOpen.TabIndex = 2
@@ -78,7 +81,8 @@ Partial Class UploadCRFile
         '
         'btnUpload
         '
-        Me.btnUpload.Location = New System.Drawing.Point(464, 539)
+        Me.btnUpload.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.btnUpload.Location = New System.Drawing.Point(759, 532)
         Me.btnUpload.Name = "btnUpload"
         Me.btnUpload.Size = New System.Drawing.Size(75, 23)
         Me.btnUpload.TabIndex = 3
@@ -87,7 +91,8 @@ Partial Class UploadCRFile
         '
         'btnClose
         '
-        Me.btnClose.Location = New System.Drawing.Point(545, 539)
+        Me.btnClose.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.btnClose.Location = New System.Drawing.Point(840, 532)
         Me.btnClose.Name = "btnClose"
         Me.btnClose.Size = New System.Drawing.Size(75, 23)
         Me.btnClose.TabIndex = 4
@@ -105,10 +110,12 @@ Partial Class UploadCRFile
         '
         'cboMap
         '
+        Me.cboMap.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
+            Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.cboMap.FormattingEnabled = True
         Me.cboMap.Location = New System.Drawing.Point(120, 5)
         Me.cboMap.Name = "cboMap"
-        Me.cboMap.Size = New System.Drawing.Size(471, 21)
+        Me.cboMap.Size = New System.Drawing.Size(766, 21)
         Me.cboMap.TabIndex = 7
         '
         'dbMap
@@ -127,7 +134,7 @@ Partial Class UploadCRFile
         Me.dbMap.RowsDefaultCellStyle = DataGridViewCellStyle1
         Me.dbMap.RowTemplate.Height = 18
         Me.dbMap.RowTemplate.ReadOnly = True
-        Me.dbMap.Size = New System.Drawing.Size(624, 147)
+        Me.dbMap.Size = New System.Drawing.Size(902, 147)
         Me.dbMap.TabIndex = 8
         '
         'Label3
@@ -149,7 +156,7 @@ Partial Class UploadCRFile
         Me.dbMapz.Name = "dbMapz"
         Me.dbMapz.ReadOnly = True
         Me.dbMapz.RowHeadersVisible = False
-        Me.dbMapz.Size = New System.Drawing.Size(624, 46)
+        Me.dbMapz.Size = New System.Drawing.Size(902, 46)
         Me.dbMapz.TabIndex = 10
         '
         'Label4
@@ -186,13 +193,14 @@ Partial Class UploadCRFile
         DataGridViewCellStyle2.Font = New System.Drawing.Font("Consolas", 6.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.gvData.RowsDefaultCellStyle = DataGridViewCellStyle2
         Me.gvData.RowTemplate.ReadOnly = True
-        Me.gvData.Size = New System.Drawing.Size(624, 185)
+        Me.gvData.Size = New System.Drawing.Size(902, 178)
         Me.gvData.TabIndex = 13
         '
         'chkNoUpdate
         '
+        Me.chkNoUpdate.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
         Me.chkNoUpdate.AutoSize = True
-        Me.chkNoUpdate.Location = New System.Drawing.Point(11, 539)
+        Me.chkNoUpdate.Location = New System.Drawing.Point(11, 532)
         Me.chkNoUpdate.Name = "chkNoUpdate"
         Me.chkNoUpdate.Size = New System.Drawing.Size(107, 17)
         Me.chkNoUpdate.TabIndex = 14
@@ -202,7 +210,8 @@ Partial Class UploadCRFile
         '
         'btnEditMap
         '
-        Me.btnEditMap.Location = New System.Drawing.Point(318, 539)
+        Me.btnEditMap.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
+        Me.btnEditMap.Location = New System.Drawing.Point(318, 532)
         Me.btnEditMap.Name = "btnEditMap"
         Me.btnEditMap.Size = New System.Drawing.Size(101, 23)
         Me.btnEditMap.TabIndex = 15
@@ -211,8 +220,9 @@ Partial Class UploadCRFile
         '
         'Button1
         '
+        Me.Button1.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.Button1.Image = Global.AAC_CRUploader.My.Resources.Resources.Refresh
-        Me.Button1.Location = New System.Drawing.Point(597, 4)
+        Me.Button1.Location = New System.Drawing.Point(892, 4)
         Me.Button1.Name = "Button1"
         Me.Button1.Size = New System.Drawing.Size(23, 23)
         Me.Button1.TabIndex = 16
@@ -222,7 +232,7 @@ Partial Class UploadCRFile
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-        Me.ClientSize = New System.Drawing.Size(676, 577)
+        Me.ClientSize = New System.Drawing.Size(954, 570)
         Me.Controls.Add(Me.Button1)
         Me.Controls.Add(Me.btnEditMap)
         Me.Controls.Add(Me.chkNoUpdate)

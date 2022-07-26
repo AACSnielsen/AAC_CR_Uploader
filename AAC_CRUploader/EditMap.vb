@@ -61,6 +61,7 @@ Public Class frmEditMap
             SQLCtl.ExecQuery(lCmdText, gSQLConnection)
             txtReceiptID.Text = SQLCtl.sqlds.Tables(0).Rows(0)("ReceiptID").ToString
             txtFileMask.Text = SQLCtl.sqlds.Tables(0).Rows(0)("FileMask").ToString
+            txtTargetTable.Text = SQLCtl.sqlds.Tables(0).Rows(0)("TargetTable").ToString
 
             lCmdText = "Select RowUno, Mapcode, ApplicationType, TargetColumn, SourceColumnLabel, DataType from _aac_CRMAP where mapcode = '" & cboMap.SelectedValue & "' order by applicationType DESC;"
             '"Select MapCode, MapDesc, FileMask, FileType, ReceiptID from _aac_crmapz where mapcode = '" & cboMap.SelectedValue & "';" &
@@ -128,28 +129,52 @@ Public Class frmEditMap
                 .Columns(1).Visible = False
 
                 .DataSource = gdtMap
+                For R As Integer = 0 To .RowCount - 1
+                    If .Rows(R).Cells(2).Value = "R" Then
+                        .Rows(R).DefaultCellStyle.BackColor = Color.Honeydew
+                    Else
+                        .Rows(R).DefaultCellStyle.BackColor = Color.LightCyan
 
+                    End If
+                Next
 
             End With
 
             ldaMap.UpdateCommand = New SqlCommandBuilder(ldaMap).GetUpdateCommand
             btnSave.Enabled = False
-
+            txtTargetTable_Leave(sender, e)
 
         End If
     End Sub
 
     Private Sub btnSave_Click(sender As Object, e As EventArgs) Handles btnSave.Click
+        'Dim myCommandBuilder As SqlCommandBuilder = New SqlCommandBuilder(ldaMap)
+        'Dim lrow As DataGridViewRow
+        'For Each lrow In dbMap.Rows
+        '    If String.IsNullOrEmpty(lrow.Cells(1).Value) Then
+        '        lrow.Cells(1).Value = cboMap.Text
+        '    End If
+        'Next
         ldaMap.Update(ldsMap)
-        Dim lCmd As String = "Update _aac_CRMAPZ set receiptid = '" & txtReceiptID.Text & "', FileMask = '" & txtFileMask.Text & "' where mapcode = '" &
+        Dim lCmd As String = "Update _aac_CRMAPZ set receiptid = '" & txtReceiptID.Text & "', FileMask = '" & txtFileMask.Text &
+                            "', TargetTable = '" & txtTargetTable.Text &
+                            "' where mapcode = '" &
             cboMap.SelectedValue & "'"
         SQLCtl.ExecCmd(lCmd, gSQLConnection)
+        btnSave.Enabled = False
+        cboMap_SelectedIndexChanged(sender, e)
     End Sub
 
 
 
     Private Sub Button1_Click(sender As Object, e As EventArgs) Handles btnClose.Click
-        Me.Close()
+        If btnSave.Enabled Then
+            If MsgBox("Discard Pending Changes?", MsgBoxStyle.OkCancel, "Unsaved Changes") = MsgBoxResult.Ok Then
+                Me.Close()
+            End If
+        Else
+            Me.Close()
+        End If
     End Sub
 
 
@@ -157,4 +182,47 @@ Public Class frmEditMap
         btnSave.Enabled = True
     End Sub
 
+    Private Sub lbAvailableFields_SelectedIndexChanged(sender As Object, e As EventArgs) Handles lbAvailableFields.SelectedIndexChanged
+
+    End Sub
+
+    Private Sub lbAvailableFields_MouseDoubleClick(sender As Object, e As MouseEventArgs) Handles lbAvailableFields.MouseDoubleClick
+        Debug.Print(lbAvailableFields.SelectedItem)
+        If dbMap.SelectedCells.Count = 1 AndAlso dbMap.SelectedCells(0).ColumnIndex = 4 Then
+            dbMap.SelectedCells(0).Value = lbAvailableFields.SelectedItem
+
+
+        End If
+    End Sub
+
+    Private Sub BtnAddMapping_Click(sender As Object, e As EventArgs)
+        Dim NewRow As DataRow
+        NewRow = gdtMap.NewRow
+        NewRow("MapCode") = "R"
+        gdtMap.Rows.Add(NewRow)
+    End Sub
+
+
+
+    Private Sub dbMap_DefaultValuesNeeded(sender As Object, e As DataGridViewRowEventArgs) Handles dbMap.DefaultValuesNeeded
+        e.Row.Cells(1).Value = Me.cboMap.SelectedValue
+        e.Row.Cells(5).Value = ""
+        e.Row.Cells(3).ReadOnly = False
+
+    End Sub
+
+
+    Private Sub txtTargetTable_Leave(sender As Object, e As EventArgs) Handles txtTargetTable.Leave
+        lbTargetColumns.Items.Clear()
+        Dim lCmdText As String = ""
+        lCmdText = "select c.name from sys.columns c join sys.objects o on c.object_id = o.object_id  where o.name = '" + txtTargetTable.Text + "'"
+        SQLCtl.ExecQuery(lCmdText, gSQLConnection)
+        If txtTargetTable.Text = "" Or SQLCtl.sqlds.Tables(0).Rows.Count = 0 Then
+            lbTargetColumns.Items.Add("{Enter Valid Target}")
+        Else
+            For lRow = 0 To SQLCtl.sqlds.Tables(0).Rows.Count - 1
+                lbTargetColumns.Items.Add(SQLCtl.sqlds.Tables(0).Rows(lRow)(0))
+            Next
+        End If
+    End Sub
 End Class

@@ -34,6 +34,10 @@ Partial Class frmEditMap
         Me.btnClose = New System.Windows.Forms.Button()
         Me.txtFileMask = New System.Windows.Forms.TextBox()
         Me.txtReceiptID = New System.Windows.Forms.TextBox()
+        Me.txtTargetTable = New System.Windows.Forms.TextBox()
+        Me.Label5 = New System.Windows.Forms.Label()
+        Me.Label6 = New System.Windows.Forms.Label()
+        Me.lbTargetColumns = New System.Windows.Forms.ListBox()
         CType(Me.dbMap, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SuspendLayout()
         '
@@ -42,11 +46,11 @@ Partial Class frmEditMap
         Me.dbMap.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
             Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
         Me.dbMap.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
-        Me.dbMap.Location = New System.Drawing.Point(12, 122)
+        Me.dbMap.Location = New System.Drawing.Point(12, 146)
         Me.dbMap.MultiSelect = False
         Me.dbMap.Name = "dbMap"
         Me.dbMap.RowHeadersVisible = False
-        Me.dbMap.Size = New System.Drawing.Size(476, 319)
+        Me.dbMap.Size = New System.Drawing.Size(476, 323)
         Me.dbMap.TabIndex = 0
         '
         'cboMap
@@ -54,7 +58,7 @@ Partial Class frmEditMap
         Me.cboMap.FormattingEnabled = True
         Me.cboMap.Location = New System.Drawing.Point(120, 18)
         Me.cboMap.Name = "cboMap"
-        Me.cboMap.Size = New System.Drawing.Size(569, 21)
+        Me.cboMap.Size = New System.Drawing.Size(368, 21)
         Me.cboMap.TabIndex = 1
         '
         'Label1
@@ -68,7 +72,8 @@ Partial Class frmEditMap
         '
         'btnSave
         '
-        Me.btnSave.Location = New System.Drawing.Point(696, 386)
+        Me.btnSave.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.btnSave.Location = New System.Drawing.Point(332, 488)
         Me.btnSave.Name = "btnSave"
         Me.btnSave.Size = New System.Drawing.Size(75, 23)
         Me.btnSave.TabIndex = 3
@@ -98,15 +103,15 @@ Partial Class frmEditMap
         Me.lbAvailableFields.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
             Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
         Me.lbAvailableFields.FormattingEnabled = True
-        Me.lbAvailableFields.Location = New System.Drawing.Point(510, 122)
+        Me.lbAvailableFields.Location = New System.Drawing.Point(521, 146)
         Me.lbAvailableFields.Name = "lbAvailableFields"
-        Me.lbAvailableFields.Size = New System.Drawing.Size(170, 316)
+        Me.lbAvailableFields.Size = New System.Drawing.Size(127, 316)
         Me.lbAvailableFields.TabIndex = 8
         '
         'Label4
         '
         Me.Label4.AutoSize = True
-        Me.Label4.Location = New System.Drawing.Point(12, 106)
+        Me.Label4.Location = New System.Drawing.Point(12, 130)
         Me.Label4.Name = "Label4"
         Me.Label4.Size = New System.Drawing.Size(53, 13)
         Me.Label4.TabIndex = 9
@@ -115,7 +120,7 @@ Partial Class frmEditMap
         'lblSampleFields
         '
         Me.lblSampleFields.AutoSize = True
-        Me.lblSampleFields.Location = New System.Drawing.Point(507, 106)
+        Me.lblSampleFields.Location = New System.Drawing.Point(518, 130)
         Me.lblSampleFields.Name = "lblSampleFields"
         Me.lblSampleFields.Size = New System.Drawing.Size(99, 13)
         Me.lblSampleFields.TabIndex = 10
@@ -123,7 +128,8 @@ Partial Class frmEditMap
         '
         'btnClose
         '
-        Me.btnClose.Location = New System.Drawing.Point(696, 415)
+        Me.btnClose.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.btnClose.Location = New System.Drawing.Point(413, 488)
         Me.btnClose.Name = "btnClose"
         Me.btnClose.Size = New System.Drawing.Size(75, 23)
         Me.btnClose.TabIndex = 11
@@ -134,21 +140,60 @@ Partial Class frmEditMap
         '
         Me.txtFileMask.Location = New System.Drawing.Point(120, 45)
         Me.txtFileMask.Name = "txtFileMask"
-        Me.txtFileMask.Size = New System.Drawing.Size(569, 20)
+        Me.txtFileMask.Size = New System.Drawing.Size(368, 20)
         Me.txtFileMask.TabIndex = 12
         '
         'txtReceiptID
         '
         Me.txtReceiptID.Location = New System.Drawing.Point(120, 71)
         Me.txtReceiptID.Name = "txtReceiptID"
-        Me.txtReceiptID.Size = New System.Drawing.Size(569, 20)
+        Me.txtReceiptID.Size = New System.Drawing.Size(368, 20)
         Me.txtReceiptID.TabIndex = 13
+        '
+        'txtTargetTable
+        '
+        Me.txtTargetTable.Location = New System.Drawing.Point(120, 97)
+        Me.txtTargetTable.Name = "txtTargetTable"
+        Me.txtTargetTable.Size = New System.Drawing.Size(368, 20)
+        Me.txtTargetTable.TabIndex = 15
+        '
+        'Label5
+        '
+        Me.Label5.AutoSize = True
+        Me.Label5.Location = New System.Drawing.Point(9, 100)
+        Me.Label5.Name = "Label5"
+        Me.Label5.Size = New System.Drawing.Size(68, 13)
+        Me.Label5.TabIndex = 14
+        Me.Label5.Text = "Target Table"
+        '
+        'Label6
+        '
+        Me.Label6.AutoSize = True
+        Me.Label6.Location = New System.Drawing.Point(651, 130)
+        Me.Label6.Name = "Label6"
+        Me.Label6.Size = New System.Drawing.Size(92, 13)
+        Me.Label6.TabIndex = 17
+        Me.Label6.Text = "Columns in Target"
+        '
+        'lbTargetColumns
+        '
+        Me.lbTargetColumns.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
+            Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
+        Me.lbTargetColumns.FormattingEnabled = True
+        Me.lbTargetColumns.Location = New System.Drawing.Point(654, 146)
+        Me.lbTargetColumns.Name = "lbTargetColumns"
+        Me.lbTargetColumns.Size = New System.Drawing.Size(127, 316)
+        Me.lbTargetColumns.TabIndex = 16
         '
         'frmEditMap
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-        Me.ClientSize = New System.Drawing.Size(800, 450)
+        Me.ClientSize = New System.Drawing.Size(815, 537)
+        Me.Controls.Add(Me.Label6)
+        Me.Controls.Add(Me.lbTargetColumns)
+        Me.Controls.Add(Me.txtTargetTable)
+        Me.Controls.Add(Me.Label5)
         Me.Controls.Add(Me.txtReceiptID)
         Me.Controls.Add(Me.txtFileMask)
         Me.Controls.Add(Me.btnClose)
@@ -181,4 +226,8 @@ Partial Class frmEditMap
     Friend WithEvents btnClose As Button
     Friend WithEvents txtFileMask As TextBox
     Friend WithEvents txtReceiptID As TextBox
+    Friend WithEvents txtTargetTable As TextBox
+    Friend WithEvents Label5 As Label
+    Friend WithEvents Label6 As Label
+    Friend WithEvents lbTargetColumns As ListBox
 End Class
