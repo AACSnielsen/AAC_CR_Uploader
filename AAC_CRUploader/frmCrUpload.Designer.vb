@@ -40,10 +40,15 @@ Partial Class UploadCRFile
         Me.gvData = New System.Windows.Forms.DataGridView()
         Me.chkNoUpdate = New System.Windows.Forms.CheckBox()
         Me.btnEditMap = New System.Windows.Forms.Button()
-        Me.Button1 = New System.Windows.Forms.Button()
+        Me.btnMapRefresh = New System.Windows.Forms.Button()
+        Me.StatusStrip1 = New System.Windows.Forms.StatusStrip()
+        Me.ToolStripStatusLabel1 = New System.Windows.Forms.ToolStripStatusLabel()
+        Me.chkValidate = New System.Windows.Forms.CheckBox()
+        Me.btnViewLog = New System.Windows.Forms.Button()
         CType(Me.dbMap, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.dbMapz, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.gvData, System.ComponentModel.ISupportInitialize).BeginInit()
+        Me.StatusStrip1.SuspendLayout()
         Me.SuspendLayout()
         '
         'txtCRFile
@@ -82,7 +87,7 @@ Partial Class UploadCRFile
         'btnUpload
         '
         Me.btnUpload.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.btnUpload.Location = New System.Drawing.Point(759, 532)
+        Me.btnUpload.Location = New System.Drawing.Point(754, 545)
         Me.btnUpload.Name = "btnUpload"
         Me.btnUpload.Size = New System.Drawing.Size(75, 23)
         Me.btnUpload.TabIndex = 3
@@ -92,7 +97,7 @@ Partial Class UploadCRFile
         'btnClose
         '
         Me.btnClose.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.btnClose.Location = New System.Drawing.Point(840, 532)
+        Me.btnClose.Location = New System.Drawing.Point(835, 545)
         Me.btnClose.Name = "btnClose"
         Me.btnClose.Size = New System.Drawing.Size(75, 23)
         Me.btnClose.TabIndex = 4
@@ -193,14 +198,14 @@ Partial Class UploadCRFile
         DataGridViewCellStyle2.Font = New System.Drawing.Font("Consolas", 6.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.gvData.RowsDefaultCellStyle = DataGridViewCellStyle2
         Me.gvData.RowTemplate.ReadOnly = True
-        Me.gvData.Size = New System.Drawing.Size(902, 178)
+        Me.gvData.Size = New System.Drawing.Size(902, 191)
         Me.gvData.TabIndex = 13
         '
         'chkNoUpdate
         '
         Me.chkNoUpdate.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
         Me.chkNoUpdate.AutoSize = True
-        Me.chkNoUpdate.Location = New System.Drawing.Point(11, 532)
+        Me.chkNoUpdate.Location = New System.Drawing.Point(6, 545)
         Me.chkNoUpdate.Name = "chkNoUpdate"
         Me.chkNoUpdate.Size = New System.Drawing.Size(107, 17)
         Me.chkNoUpdate.TabIndex = 14
@@ -211,29 +216,68 @@ Partial Class UploadCRFile
         'btnEditMap
         '
         Me.btnEditMap.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
-        Me.btnEditMap.Location = New System.Drawing.Point(318, 532)
+        Me.btnEditMap.Location = New System.Drawing.Point(302, 545)
         Me.btnEditMap.Name = "btnEditMap"
-        Me.btnEditMap.Size = New System.Drawing.Size(101, 23)
+        Me.btnEditMap.Size = New System.Drawing.Size(113, 23)
         Me.btnEditMap.TabIndex = 15
         Me.btnEditMap.Text = "Edit Mapping"
         Me.btnEditMap.UseVisualStyleBackColor = True
         '
-        'Button1
+        'btnMapRefresh
         '
-        Me.Button1.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.Button1.Image = Global.AAC_CRUploader.My.Resources.Resources.Refresh
-        Me.Button1.Location = New System.Drawing.Point(892, 4)
-        Me.Button1.Name = "Button1"
-        Me.Button1.Size = New System.Drawing.Size(23, 23)
-        Me.Button1.TabIndex = 16
-        Me.Button1.UseVisualStyleBackColor = True
+        Me.btnMapRefresh.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.btnMapRefresh.Image = Global.AAC_CRUploader.My.Resources.Resources.Refresh
+        Me.btnMapRefresh.Location = New System.Drawing.Point(892, 4)
+        Me.btnMapRefresh.Name = "btnMapRefresh"
+        Me.btnMapRefresh.Size = New System.Drawing.Size(23, 23)
+        Me.btnMapRefresh.TabIndex = 16
+        Me.btnMapRefresh.UseVisualStyleBackColor = True
+        '
+        'StatusStrip1
+        '
+        Me.StatusStrip1.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.ToolStripStatusLabel1})
+        Me.StatusStrip1.Location = New System.Drawing.Point(0, 586)
+        Me.StatusStrip1.Name = "StatusStrip1"
+        Me.StatusStrip1.Size = New System.Drawing.Size(954, 22)
+        Me.StatusStrip1.TabIndex = 18
+        Me.StatusStrip1.Text = "StatusStrip1"
+        '
+        'ToolStripStatusLabel1
+        '
+        Me.ToolStripStatusLabel1.Name = "ToolStripStatusLabel1"
+        Me.ToolStripStatusLabel1.Size = New System.Drawing.Size(60, 17)
+        Me.ToolStripStatusLabel1.Text = "StatusText"
+        '
+        'chkValidate
+        '
+        Me.chkValidate.AutoSize = True
+        Me.chkValidate.Checked = True
+        Me.chkValidate.CheckState = System.Windows.Forms.CheckState.Checked
+        Me.chkValidate.Location = New System.Drawing.Point(623, 551)
+        Me.chkValidate.Name = "chkValidate"
+        Me.chkValidate.Size = New System.Drawing.Size(125, 17)
+        Me.chkValidate.TabIndex = 19
+        Me.chkValidate.Text = "Validate after Upload"
+        Me.chkValidate.UseVisualStyleBackColor = True
+        '
+        'btnViewLog
+        '
+        Me.btnViewLog.Location = New System.Drawing.Point(421, 545)
+        Me.btnViewLog.Name = "btnViewLog"
+        Me.btnViewLog.Size = New System.Drawing.Size(113, 23)
+        Me.btnViewLog.TabIndex = 20
+        Me.btnViewLog.Text = "View Validation Log"
+        Me.btnViewLog.UseVisualStyleBackColor = True
         '
         'UploadCRFile
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-        Me.ClientSize = New System.Drawing.Size(954, 570)
-        Me.Controls.Add(Me.Button1)
+        Me.ClientSize = New System.Drawing.Size(954, 608)
+        Me.Controls.Add(Me.btnViewLog)
+        Me.Controls.Add(Me.chkValidate)
+        Me.Controls.Add(Me.StatusStrip1)
+        Me.Controls.Add(Me.btnMapRefresh)
         Me.Controls.Add(Me.btnEditMap)
         Me.Controls.Add(Me.chkNoUpdate)
         Me.Controls.Add(Me.gvData)
@@ -254,6 +298,8 @@ Partial Class UploadCRFile
         CType(Me.dbMap, System.ComponentModel.ISupportInitialize).EndInit()
         CType(Me.dbMapz, System.ComponentModel.ISupportInitialize).EndInit()
         CType(Me.gvData, System.ComponentModel.ISupportInitialize).EndInit()
+        Me.StatusStrip1.ResumeLayout(False)
+        Me.StatusStrip1.PerformLayout()
         Me.ResumeLayout(False)
         Me.PerformLayout()
 
@@ -275,5 +321,9 @@ Partial Class UploadCRFile
     Friend WithEvents gvData As DataGridView
     Friend WithEvents chkNoUpdate As CheckBox
     Friend WithEvents btnEditMap As Button
-    Friend WithEvents Button1 As Button
+    Friend WithEvents btnMapRefresh As Button
+    Friend WithEvents StatusStrip1 As StatusStrip
+    Friend WithEvents ToolStripStatusLabel1 As ToolStripStatusLabel
+    Friend WithEvents chkValidate As CheckBox
+    Friend WithEvents btnViewLog As Button
 End Class

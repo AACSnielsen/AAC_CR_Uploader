@@ -41,7 +41,6 @@ Public Class frmEditMap
             .DataSource = SQLCtl.sqlds.Tables(0)
             .DisplayMember = "MapDesc"
             .ValueMember = "MapCode"
-
         End With
 
         btnSave.Enabled = False
@@ -82,6 +81,7 @@ Public Class frmEditMap
                 .Items.Add("%User%")
                 .Items.Add("%FileName%")
                 .Items.Add("%ImportNum%")
+                .Items.Add("%TranlINE%")
                 .Items.Add("%Time%")
             End With
 
@@ -183,7 +183,11 @@ Public Class frmEditMap
     End Sub
 
     Private Sub lbAvailableFields_SelectedIndexChanged(sender As Object, e As EventArgs) Handles lbAvailableFields.SelectedIndexChanged
-
+        If lbTargetColumns.SelectedItems.Count = 1 And lbAvailableFields.SelectedItems.Count = 1 Then
+            btnAddPair.Enabled = True
+        Else
+            btnAddPair.Enabled = False
+        End If
     End Sub
 
     Private Sub lbAvailableFields_MouseDoubleClick(sender As Object, e As MouseEventArgs) Handles lbAvailableFields.MouseDoubleClick
@@ -223,6 +227,81 @@ Public Class frmEditMap
             For lRow = 0 To SQLCtl.sqlds.Tables(0).Rows.Count - 1
                 lbTargetColumns.Items.Add(SQLCtl.sqlds.Tables(0).Rows(lRow)(0))
             Next
+        End If
+    End Sub
+
+    Private Sub lbTargetColumns_SelectedIndexChanged(sender As Object, e As EventArgs) Handles lbTargetColumns.SelectedIndexChanged
+        If lbTargetColumns.SelectedItems.Count = 1 And lbAvailableFields.SelectedItems.Count = 1 Then
+            btnAddPair.Enabled = True
+        Else
+            btnAddPair.Enabled = False
+        End If
+    End Sub
+
+    Private Sub btnAddPair_Click(sender As Object, e As EventArgs) Handles btnAddPair.Click
+        Dim NewRow As DataRow
+        NewRow = gdtMap.NewRow
+        NewRow("ApplicationType") = "?"
+        NewRow("MapCode") = cboMap.SelectedValue
+        NewRow("SourceColumnLabel") = lbAvailableFields.SelectedItem
+        NewRow("TargetColumn") = lbTargetColumns.SelectedItem
+        NewRow("DataType") = "L"
+        gdtMap.Rows.Add(NewRow)
+
+        btnSave.Enabled = True
+
+    End Sub
+
+    Private Sub Label8_Click(sender As Object, e As EventArgs)
+
+    End Sub
+
+    Private Sub GroupBox1_Enter(sender As Object, e As EventArgs) Handles GroupBox1.Enter
+
+    End Sub
+
+    Private Sub Button1_Click_1(sender As Object, e As EventArgs) Handles Button1.Click
+        If txtNewCode.Text <> "" And txtNewDesc.Text <> "" Then
+            Dim lcmd As String = ""
+            lcmd = "insert into _AAC_CRMAP" &
+                " select '" & txtNewCode.Text & "',	ApplicationType	,StageTable	,SourceColumnLabel	,TargetColumn	,DataType from _AAC_CRMAP where mapcode = '" & cboMap.SelectedValue & "'" &
+                " insert into _AAC_CRMAPZ" &
+                " select '" & txtNewCode.Text & "','" & txtNewDesc.Text & "' ,FileMask	,FileType	,Inactive	,ReceiptID	,TargetTable from _AAC_CRMAPZ where mapcode = '" & cboMap.SelectedValue & "'"
+            SQLCtl.ExecCmd(lcmd, gSQLConnection)
+
+            SQLCtl.ExecQuery("Select Mapcode, MapDesc, FileMask, FileType from _aac_CRMAPZ where inactive <> 'Y'", gSQLConnection)
+            FormLoad = True
+            With cboMap
+                .DataSource = SQLCtl.sqlds.Tables(0)
+                .DisplayMember = "MapDesc"
+                .ValueMember = "MapCode"
+            End With
+            FormLoad = False
+        End If
+    End Sub
+
+    Private Sub Label7_Click(sender As Object, e As EventArgs) Handles Label7.Click
+
+    End Sub
+
+    Private Sub Label8_Click_1(sender As Object, e As EventArgs) Handles Label8.Click
+
+    End Sub
+
+    Private Sub Button2_Click(sender As Object, e As EventArgs) Handles Button2.Click
+        Dim mans As MsgBoxResult = MsgBox("This will permanently delete the mapping " & cboMap.SelectedValue & vbCrLf & "Are you sure?", MsgBoxStyle.Critical + MsgBoxStyle.YesNo, "Warning!")
+        If mans = MsgBoxResult.Yes Then
+            Dim lcmd As String = "Delete from _aac_crmap where mapcode = '" & cboMap.SelectedValue & "';" &
+                                 "Delete from _aac_crmapZ where mapcode = '" & cboMap.SelectedValue & "';"
+            SQLCtl.ExecCmd(lcmd, gSQLConnection)
+            FormLoad = True
+            SQLCtl.ExecQuery("Select Mapcode, MapDesc, FileMask, FileType from _aac_CRMAPZ where inactive <> 'Y'", gSQLConnection)
+            With cboMap
+                .DataSource = SQLCtl.sqlds.Tables(0)
+                .DisplayMember = "MapDesc"
+                .ValueMember = "MapCode"
+            End With
+            FormLoad = False
         End If
     End Sub
 End Class

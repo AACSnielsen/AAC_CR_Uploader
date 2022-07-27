@@ -5,19 +5,32 @@ Imports System.Xml
 
 
 Public Class UploadCRFile
-    Protected Friend FormLoad As Boolean
-    Protected Friend ReceiptKeyColumn As String
-    Protected Friend gdtMap As DataTable
-    Protected Friend gImportNum As Integer = -1
-    Protected Friend gAutoRun As Boolean = False
-    Protected Friend gAutoFile As String = ""
-    Protected Friend gAutoMap As String = ""
-    Protected Friend gSQLConnection As SqlConnection
-    Protected Friend gdtReceipts As DataTable
+    Private Protected FormLoad As Boolean
+    Private Protected ReceiptKeyColumn As String
+    Private Protected TargetTableName As String
+    Private Protected gdtMap As DataTable
+    Private Protected gAutoRun As Boolean = False
+    Private Protected gAutoFile As String = ""
+    Private Protected gAutoMap As String = ""
+    Private Protected gSQLConnection As SqlConnection
+    Private Protected gdtReceipts As DataTable
     Protected Friend gCRDataFile As New DataSet
+    Private Protected gdtMaps As New DataTable
+    Private Protected SQLCtl As New SQLControl
+    Private Protected gLineNumber As Integer = 0 'Input Line Number
+    Private Protected gImportNum As Integer = 0 ' Batch number for file
+    Private Protected gTranLineNumber As Integer = 0 'sequence within trannumber
+    Private Protected gTranNumber As Integer = 0 'Counter for unique receipt
+    Private Protected gSourceDataPath As String = ""
+    Private Protected gImportLogName As String = ""
+    Private Protected gswLogFile As StreamWriter
+
+
+
 
 
     Private Sub UploadCRFile_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        StatusStrip1.Items(0).Text = "Load"
         Dim args As String()
         args = Environment.GetCommandLineArgs
         For argIx = 1 To args.Count - 1
@@ -60,18 +73,14 @@ Public Class UploadCRFile
         gSQLConnection.Open()
         Dim lCmdText As String = "Select Mapcode, MapDesc, FileMask, TargetTable, FileType from _aac_CRMAPZ where inactive <> 'Y'"
 
-        Dim ldaMaps As New SqlDataAdapter(lCmdText, gSQLConnection)
-        Dim ldtMaps As New DataTable
-        ldaMaps.Fill(ldtMaps)
-
+        SQLCtl.ExecQuery("Select Mapcode, MapDesc, FileMask, TargetTable, FileType from _aac_CRMAPZ where inactive <> 'Y'", gSQLConnection)
+        gdtMaps = SQLCtl.sqlds.Tables(0)
         With cboMap
-            .DataSource = ldtMaps
+            .DataSource = SQLCtl.sqlds.Tables(0)
             .DisplayMember = "MapDesc"
             .ValueMember = "MapCode"
-
         End With
 
-        'gSQLConnection.Close()
         FormLoad = False
         If gAutoMap <> "" Then
             cboMap.SelectedIndex = 0
@@ -92,73 +101,19 @@ Public Class UploadCRFile
     Private Sub btnOpen_Click(sender As Object, e As EventArgs) Handles btnOpen.Click
         OpenFileDialog1.ShowDialog()
         txtCRFile.Text = OpenFileDialog1.FileName
+
     End Sub
 
     Private Sub btnClose_Click(sender As Object, e As EventArgs) Handles btnClose.Click
         If gSQLConnection.State = ConnectionState.Open Then
             gSQLConnection.Close()
         End If
+        If gswLogFile IsNot Nothing Then
+            gswLogFile.Close()
+        End If
         Me.Close()
         End
     End Sub
-
-    Private Sub cboMap_SelectedIndexChanged(sender As Object, e As EventArgs) Handles cboMap.SelectedIndexChanged
-        ' cboMap has all defined mappings.  When selected, load the details for that mapping to the gdtMap Data table
-        If Not FormLoad Then
-            Try
-                Dim lServer As String = "SDN-ENVY-2020\SDN_HPENVY"
-                Dim lDatabase As String = "TestDB"
-                'Dim gSQLConnection As New SqlClient.SqlConnection
-                'Dim lConnectionString As String
-                'lConnectionString = "Server=" & lServer & "; Database=" & lDatabase & ";Integrated Security=SSPI;"
-                'gSQLConnection.ConnectionString = lConnectionString
-                'gSQLConnection.Open()
-                Dim lCmdText As String = ""
-                'Endsure SQL sequenece exists
-                lCmdText = "if not exists (select * from sys.sequences where schema_name(schema_id) = 'sequence' and name = 'import_num') " &
-                        "CREATE SEQUENCE [Sequence].[Import_Num]  START WITH 1"
-                Dim lcmd As New SqlCommand(lCmdText, gSQLConnection)
-                lcmd.ExecuteNonQuery()
-                'TODO REMAP TO CUSTOM TABLE FOR NEXT BATCH NUMBER  !!!!
-                lCmdText = "Select Mapcode, ApplicationType, SourceColumnLabel, TargetColumn, DataType from _aac_CRMAP where mapcode = '" & cboMap.SelectedValue & "' order by applicationType DESC;" &
-                       "Select MapCode, MapDesc, FileMask, TargetTable, FileType, ReceiptID from _aac_crmapz where mapcode = '" & cboMap.SelectedValue & "';" &
-                       "Select next value for sequence.import_num as Import_Num from _aac_crmap where mapcode = '" & cboMap.SelectedValue & "' and sourcecolumnlabel = '%ImportNum%';"
-                Dim ldaMap As New SqlDataAdapter(lCmdText, gSQLConnection)
-                Dim ldsMap = New DataSet
-                ldaMap.Fill(ldsMap)
-
-                gdtMap = ldsMap.Tables(0)
-                dbMap.DataSource = gdtMap
-
-                dbMapz.DataSource = ldsMap.Tables(1)
-                ReceiptKeyColumn = ldsMap.Tables(1).Rows(0)("ReceiptID") 'Get identifier for receipt object
-                OpenFileDialog1.Filter = "CR IMport Files|" & ldsMap.Tables(1).Rows(0)("FileMask") 'Get identifier for receipt object
-
-                If ldsMap.Tables(2).Rows.Count > 0 Then
-                    gImportNum = ldsMap.Tables(2).Rows(0)(0)
-                End If
-
-                btnOpen.Enabled = True
-                txtCRFile.Enabled = True
-            Catch err As Exception
-                Dim mresp As MsgBoxResult
-                mresp = MsgBox("Unexpected Error:" & err.Message, MsgBoxStyle.Critical + MsgBoxStyle.OkCancel + MsgBoxStyle.DefaultButton2, "Error in cboMap.SelectedIndexChanged")
-                If mresp = MsgBoxResult.Cancel Then
-                    ProgramAbend()
-
-                End If
-                Debug.Print(e.ToString)
-            End Try
-
-        End If
-    End Sub
-    Private Sub ProgramAbend()
-        If gSQLConnection.State = ConnectionState.Open Then
-            gSQLConnection.Close()
-        End If
-        End
-    End Sub
-
     Private Sub btnUpload_Click(sender As Object, e As EventArgs) Handles btnUpload.Click
         ' ldtMap hold the current mapping spec.  This includes multiple ApplicationType mappings.
         ' Application types include, among others, 'R'eceipts Headers, 'A'pplications to 'B'Ills
@@ -173,11 +128,15 @@ Public Class UploadCRFile
         'gdtReceipts.Columns.Add("ReceiptId", System.Type.GetType("System.String"))
         'gdtReceipts.Columns.Add("ReceiptNum", System.Type.GetType("System.Int32"))
 
+
+        StatusStrip1.Items(0).Text = "Start"
+        WriteLog("Start Upload of " & txtCRFile.Text)
+
         Dim lcmd As New SqlCommand
         lcmd.Connection = gSQLConnection
 
         ' // Test if file has already been processed by checking if it is in the load file //
-        Dim lCmdText As String = "Select count(*) As 'Count', max(_StagingDate) 'StagingDate' from _aac_CR_load where _SourceFile = '" & OpenFileDialog1.FileName & "'"
+        Dim lCmdText As String = "Select count(*) As 'Count', max(_StagingDate) 'StagingDate' from " + TargetTableName + " where _SourceFile = '" & OpenFileDialog1.FileName & "'"
         Dim ldaHist As New SqlDataAdapter(lCmdText, gSQLConnection)
         Dim ldtHist As New DataTable
         ldaHist.Fill(ldtHist)
@@ -198,8 +157,10 @@ Public Class UploadCRFile
             csvDataAdapter.Fill(dtCRData)
         End Using
 
+
         ' For each type, get distinct values for mapped columns                                                         distinctRcptHeaders.
         Dim distinctRcptHeaders As DataTable = GetDistinctRows("R", dtCRData)
+        DisplayDT(distinctRcptHeaders, 100)
         'distinctRcptHeaders = GetDistinctRows("R", dtCRData)
         Dim dtRcptHeaderMap As DataTable = GetTypeMap("R")
 
@@ -214,11 +175,18 @@ Public Class UploadCRFile
         'Dim SourceColumnsThisType As DataRow() '= gdtMap.Select(RTypeColumnFilter)
         'Dim dtThisType As DataTable = gdtMap.Clone()
 
+        SQLCtl.ExecQuery("Select next value for sequence.import_num as Import_Num", gSQLConnection)
+        gImportNum = SQLCtl.sqlds.Tables(0).Rows(0)(0)
+
+
         ' then loop through for each subset matching the ReceiptKeyColumn                                               Process all R Receipts
         Dim ThisTypeThisReceipt As DataTable
         Dim distinctRcptHeader As DataRow
         Dim TypeFilter As String = ""
+        gTranNumber = 0
         For Each distinctRcptHeader In distinctRcptHeaders.Rows   '                                                      Receipt Header Loop
+            gTranNumber += 1
+            gTranLineNumber = 1
             'Write R row followed by all details rows mapped
             '  distinctRcptHeader is the current receipt header data
 
@@ -231,9 +199,10 @@ Public Class UploadCRFile
             Dim SourceRowsMatchingType As DataRow() = distinctRcptRowsThisType.Select(TypeFilter)
             'ThisTypeThisReceipt = SourceRowsMatchingType.CopyToDataTable
             ThisTypeThisReceipt = GetDistinctRows("I", dtCRData, distinctRcptHeader(ReceiptKeyColumn).ToString)
-            'DisplayDT(ThisTypeThisReceipt, 100) ' DEBUG   DEBUG   DEBUG   DEBUG   DEBUG
+            DisplayDT(ThisTypeThisReceipt, 100) ' DEBUG   DEBUG   DEBUG   DEBUG   DEBUG
             Dim ItemDatarow As DataRow
             For Each ItemDatarow In ThisTypeThisReceipt.Rows
+                gTranLineNumber += 1
                 WriteDataViaMap(ItemDatarow, dtThistypeMap)
             Next
 
@@ -243,97 +212,81 @@ Public Class UploadCRFile
 
         Next
 
-
-
-        ' OLD CODE BELOW
-        Dim dtThisType As DataTable
-        Dim ColumnList As New List(Of String)
-        Dim distinctTypes As DataTable = gdtMap.DefaultView.ToTable(True, "ApplicationType") 'TRUE implies distinct here
-        '''' distinctTypes e.g. "R" and "B"
-        For TypeIX = 0 To distinctTypes.Rows.Count - 1
-            ''    Debug.Print("Processing Type = " & distinctTypes.Rows(TypeIX)(0).ToString)
-            ''    ' ??If type = R build table of distinct receipts,  if not R, retrieve distinct receipt num
-
-
-            ''    'Get distinct mapping rows for select map and type
-            ''    ''Dim TypeFilter As String = "ApplicationType = '" & distinctTypes.Rows(TypeIX)(0).ToString & "' and DataType = 'L'"
-            Dim SourceRowsMatchingType As DataRow() = gdtMap.Select(TypeFilter)
-            ''    '' ''Dim dtThisType As DataTable = gdtMap.Clone()
-            ''    dtThisType = SourceRowsMatchingType.CopyToDataTable
-            ''    ' At this point dtThisType should have the mapping for the iterative data type (R, B, ...)
-            ''    ' Process each row in the dtThistype mapping against all (distinct) input rows to write to database table
-            ''    '  First set column list to select:
-            ''    ColumnList = New List(Of String)
-            ''    For ColIX = 0 To dtThisType.Rows.Count - 1
-            ''        ColumnList.Add(dtThisType.Rows(ColIX)("SourceColumnLabel"))
-            ''    Next ColIX
-
-            ''    'Update the map to include all columns
-            ''    TypeFilter = "ApplicationType = '" & distinctTypes.Rows(TypeIX)(0).ToString & "' and DataType <> ''"
-            ''    SourceRowsMatchingType = gdtMap.Select(TypeFilter)
-            dtThisType = SourceRowsMatchingType.CopyToDataTable
-
-
-            Dim txtPreamble As String = "insert into _aac_CR_LOAD ("
-            Dim txtValues As String = ""
-            For ColIX = 0 To dtThisType.Rows.Count - 1
-                txtPreamble &= (dtThisType.Rows(ColIX)("TargetColumn")) + ", "
-            Next ColIX
-            txtPreamble = txtPreamble.Substring(0, txtPreamble.Length - 2) & ")" & vbCrLf
-
-            'Now select the distinct values for the indiacted columns
-            Dim ReceiptLineSeq As Integer = 0
-            Dim CurrReceiptID As Integer = -1
-            Dim distinctRcpt As DataTable = dtCRData.DefaultView.ToTable(True, ColumnList.ToArray())
-
-            For rcptix = 0 To distinctRcpt.Rows.Count - 1
-                If CurrReceiptID <> distinctRcpt.Rows(rcptix)(ReceiptKeyColumn) Then
-                    ReceiptLineSeq = 0
-                    CurrReceiptID = distinctRcpt.Rows(rcptix)(ReceiptKeyColumn)
-                End If
-                ReceiptLineSeq += 1
-                txtValues = "Values ("
-                For colix = 0 To dtThisType.Rows.Count - 1
-                    Select Case dtThisType.Rows(colix)("DataType")
-                        Case "K" ' C(K)onstant
-                            txtValues &= "'" & (dtThisType.Rows(colix)("SourceColumnLabel")) & "', "
-                        Case "R" 'Replacement Variable
-                            Select Case (dtThisType.Rows(colix)("SourceColumnLabel"))
-                                Case "%FileName%"
-                                    txtValues &= "'" & OpenFileDialog1.FileName & "', "
-                                Case "%ImportNum%"
-                                    txtValues &= gImportNum.ToString & ", "
-                                Case "%Time%"
-                                    txtValues &= "getdate(), "
-                                Case "%User%"
-                                    txtValues &= "Suser_Sname(), "
-                                Case "%TranLine%"
-                                    txtValues &= ReceiptLineSeq.ToString + ", "
-
-                                Case Else
-                                    txtValues &= "'" & dtThisType.Rows(colix)("SourceColumnLabel") & "', "
-                            End Select
-                        Case Else
-                            txtValues &= "'" & distinctRcpt.Rows(rcptix)(dtThisType.Rows(colix)("SourceColumnLabel")) & "', "
-                    End Select
-
-                Next colix
-                txtValues = txtValues.Substring(0, txtValues.Length - 2) & ")"
-                Debug.Print(txtPreamble & txtValues)
-                If chkNoUpdate.Checked = CheckState.Unchecked Then
-                    lcmd.CommandText = txtPreamble & txtValues
-                    lcmd.ExecuteNonQuery()
-                End If
-            Next rcptix
-
-        Next TypeIX
         MsgBox("Upload Complete:" & vbCrLf & OpenFileDialog1.FileName, MsgBoxStyle.OkOnly, "Complete")
-        'Dim DistinctReceipts = From row In dssample.Tables(0).AsEnumerable()
-        ' Select Case row.Field(Of String)(dssample.Tables(0))
+        StatusStrip1.Items(0).Text = "Uploaded to Batch " & gImportNum.ToString
+        If chkValidate.Checked Then
+            Dim cdtError As New DataTable()
+            SQLCtl.ExecCmd("Exec SpAacCRPreValidateData @BatchId=" & gImportNum.ToString, gSQLConnection)
+            SQLCtl.ExecQuery("select TrackingNumber, errorvalue from [_AacCRImpErrorLog] where BatchId=" & gImportNum.ToString & " Order by trackingnumber", gSQLConnection)
+            cdtError = SQLCtl.sqlds.Tables(0)
+            Dim lRow As DataRow
+            For Each lRow In cdtError.Rows
+                WriteLog("Batch:" & gImportNum.ToString & "|TrackingNumber:" & lRow(0) & "|" & lRow(1))
+            Next
+        End If
+
+
 
     End Sub
+
+    Private Sub cboMap_SelectedIndexChanged(sender As Object, e As EventArgs) Handles cboMap.SelectedIndexChanged
+        ' cboMap has all defined mappings.  When selected, load the details for that mapping to the gdtMap Data table
+        If Not FormLoad Then
+            Try
+                Dim lCmdText As String = ""
+                'Ensure SQL sequenece exists
+                lCmdText = "if not exists (select * from sys.sequences where schema_name(schema_id) = 'sequence' and name = 'import_num') " &
+                        "CREATE SEQUENCE [Sequence].[Import_Num]  START WITH 1"
+                Dim lcmd As New SqlCommand(lCmdText, gSQLConnection)
+                lcmd.ExecuteNonQuery()
+                'TODO REMAP TO CUSTOM TABLE FOR NEXT BATCH NUMBER  !!!!
+                lCmdText = "Select Mapcode, ApplicationType, SourceColumnLabel, TargetColumn, DataType from _aac_CRMAP where mapcode = '" & cboMap.SelectedValue & "' order by applicationType DESC;" &
+                       "Select MapCode, MapDesc, FileMask, TargetTable, FileType, ReceiptID from _aac_crmapz where mapcode = '" & cboMap.SelectedValue & "';"
+                '  "Select next value for sequence.import_num as Import_Num from _aac_crmap where mapcode = '" & cboMap.SelectedValue & "' and sourcecolumnlabel = '%ImportNum%';"
+                Dim ldaMap As New SqlDataAdapter(lCmdText, gSQLConnection)
+                Dim ldsMap = New DataSet
+                ldaMap.Fill(ldsMap)
+
+                gdtMap = ldsMap.Tables(0)
+                dbMap.DataSource = gdtMap
+
+                dbMapz.DataSource = ldsMap.Tables(1)
+                ReceiptKeyColumn = ldsMap.Tables(1).Rows(0)("ReceiptID") 'Get identifier for receipt object
+                TargetTableName = ldsMap.Tables(1).Rows(0)("TargetTable") 'Get Name of target table
+                OpenFileDialog1.Filter = "CR IMport Files|" & ldsMap.Tables(1).Rows(0)("FileMask") 'Get identifier for receipt object
+
+                'If ldsMap.Tables(2).Rows.Count > 0 Then
+                '    gImportNum = ldsMap.Tables(2).Rows(0)(0)
+                'End If
+
+                btnOpen.Enabled = True
+                txtCRFile.Enabled = True
+            Catch err As Exception
+                Dim mresp As MsgBoxResult
+                mresp = MsgBox("Unexpected Error:" & err.Message, MsgBoxStyle.Critical + MsgBoxStyle.OkCancel + MsgBoxStyle.DefaultButton2, "Error in cboMap.SelectedIndexChanged")
+                If mresp = MsgBoxResult.Cancel Then
+                    ProgramAbend()
+
+                End If
+                Debug.Print(e.ToString)
+            End Try
+
+        End If
+    End Sub
+    Private Sub ProgramAbend()
+        If gSQLConnection.State = ConnectionState.Open Then
+            gSQLConnection.Close()
+        End If
+        If gswLogFile IsNot Nothing Then
+            gswLogFile.Close()
+        End If
+        End
+    End Sub
+
     Sub WriteDataViaMap(pDataRow As DataRow, pMapTable As DataTable)
-        Dim txtPreamble As String = "insert into _aac_CR_LOAD ("
+        ' The MAPPING datatable, pMapTable, has instructions on how to populate the target with data from the provided datarow, pDataRow
+        ' THis logic will read each item in the map and use it to construct an insert statement into the target table
+        Dim txtPreamble As String = "insert into " & TargetTableName & " ("
         Dim txtValues As String = ""
         For ColIX = 0 To pMapTable.Rows.Count - 1
             txtPreamble &= (pMapTable.Rows(ColIX)("TargetColumn")) + ", "
@@ -354,11 +307,11 @@ Public Class UploadCRFile
                             txtValues &= "getdate(), "
                         Case "%User%"
                             txtValues &= "Suser_Sname(), "
-                        Case "%LineNum%"
-                            txtValues &= "0, " 'ReceiptLineSeq.ToString + ", "
+                            ' Case "%LineNum%"
+                       '     txtValues &= pDataRow("__ROWNUM").ToString & ", " '"0, " 'ReceiptLineSeq.ToString + ", "
                         Case "%TranLine%"
-                            'txtValues &= ReceiptLineSeq.ToString + ", "
-                            txtValues &= 0.ToString + ", "
+                            txtValues &= gTranLineNumber.ToString + ", "
+
                         Case Else
                             txtValues &= "'" & pMapTable.Rows(colix)("SourceColumnLabel") & "', "
                     End Select
@@ -369,6 +322,10 @@ Public Class UploadCRFile
         Next colix
         txtValues = txtValues.Substring(0, txtValues.Length - 2) & ")"
         Debug.Print(txtPreamble & txtValues)
+        Dim lcmd As New SqlCommand
+        lcmd.Connection = gSQLConnection
+        lcmd.CommandText = txtPreamble & txtValues
+        lcmd.ExecuteNonQuery()
     End Sub
 
     Function GetDistinctRows(pType As String, pDataSource As DataTable, Optional pReceiptID As String = "") As DataTable
@@ -406,10 +363,15 @@ Public Class UploadCRFile
         SourceRowsMatchingType = gdtMap.Select(TypeFilter)
         GetTypeMap = SourceRowsMatchingType.CopyToDataTable
     End Function
-
+    Sub WriteLog(pString As String)
+        If gswLogFile IsNot Nothing Then
+            gswLogFile.WriteLine(Now.ToString & "|" & pString)
+        End If
+    End Sub
 
 
     Sub DisplayDT(Pdt As DataTable, pMaxRows As Integer)
+        ' this routine can be used for debugging to display the contents of a datatable
         If pMaxRows > Pdt.Rows.Count Then
             pMaxRows = Pdt.Rows.Count
         End If
@@ -429,6 +391,7 @@ Public Class UploadCRFile
         Next r
     End Sub
     Private Sub txtCRFile_TextChanged(sender As Object, e As EventArgs) Handles txtCRFile.TextChanged
+        btnUpload.Enabled = False
         If txtCRFile.Text <> "" Then
             Dim fileobject As FileInfo
             fileobject = New FileInfo(txtCRFile.Text)
@@ -443,13 +406,18 @@ Public Class UploadCRFile
                     End Using
 
                     gvData.DataSource = gCRDataFile.Tables(0)
+                    btnUpload.Enabled = True
                 Catch ex As Exception
                     MsgBox(ex.Message, MsgBoxStyle.Critical, "Error in CRFile.change event.")
                 End Try
             End If
         End If
-
-
+        gSourceDataPath = Path.GetDirectoryName(txtCRFile.Text)
+        If gswLogFile IsNot Nothing Then
+            gswLogFile.Close()
+        End If
+        gImportLogName = Path.GetDirectoryName(txtCRFile.Text) & "\" & Path.GetFileNameWithoutExtension(txtCRFile.Text) & ".log"
+        gswLogFile = New StreamWriter(gImportLogName, True)
     End Sub
 
     Private Sub cboMap_SelectedValueChanged(sender As Object, e As EventArgs) Handles cboMap.SelectedValueChanged
@@ -459,12 +427,32 @@ Public Class UploadCRFile
 
     End Sub
 
-    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles btnEditMap.Click
-        frmEditMap.Show()
+    Private Sub btnEditMap_Click(sender As Object, e As EventArgs) Handles btnEditMap.Click
+        frmEditMap.ShowDialog(Me)
 
+        FormLoad = True
+
+        SQLCtl.ExecQuery("Select Mapcode, MapDesc, FileMask, TargetTable, FileType from _aac_CRMAPZ where inactive <> 'Y'", gSQLConnection)
+        gdtMaps = SQLCtl.sqlds.Tables(0)
+        With cboMap
+
+            .DataSource = gdtMaps
+            .DisplayMember = "MapDesc"
+            .ValueMember = "MapCode"
+            .Refresh()
+        End With
+        FormLoad = False
     End Sub
 
-    Private Sub Button1_Click_1(sender As Object, e As EventArgs) Handles Button1.Click
+    Private Sub btnMapRefresh_Click_1(sender As Object, e As EventArgs) Handles btnMapRefresh.Click
         cboMap_SelectedIndexChanged(sender, e)
+    End Sub
+
+    Private Sub btnViewLog_Click(sender As Object, e As EventArgs) Handles btnViewLog.Click
+        If System.IO.File.Exists(gImportLogName) = True Then
+            Process.Start(gImportLogName)
+        Else
+            MsgBox("Error opening log file. " & gImportLogName & " Not found.")
+        End If
     End Sub
 End Class

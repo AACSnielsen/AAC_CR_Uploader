@@ -38,19 +38,29 @@ Partial Class frmEditMap
         Me.Label5 = New System.Windows.Forms.Label()
         Me.Label6 = New System.Windows.Forms.Label()
         Me.lbTargetColumns = New System.Windows.Forms.ListBox()
+        Me.btnAddPair = New System.Windows.Forms.Button()
+        Me.GroupBox1 = New System.Windows.Forms.GroupBox()
+        Me.Button1 = New System.Windows.Forms.Button()
+        Me.txtNewCode = New System.Windows.Forms.TextBox()
+        Me.txtNewDesc = New System.Windows.Forms.TextBox()
+        Me.Label8 = New System.Windows.Forms.Label()
+        Me.Label7 = New System.Windows.Forms.Label()
+        Me.Button2 = New System.Windows.Forms.Button()
         CType(Me.dbMap, System.ComponentModel.ISupportInitialize).BeginInit()
+        Me.GroupBox1.SuspendLayout()
         Me.SuspendLayout()
         '
         'dbMap
         '
-        Me.dbMap.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
-            Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
+        Me.dbMap.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
+            Or System.Windows.Forms.AnchorStyles.Left) _
+            Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.dbMap.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
         Me.dbMap.Location = New System.Drawing.Point(12, 146)
         Me.dbMap.MultiSelect = False
         Me.dbMap.Name = "dbMap"
         Me.dbMap.RowHeadersVisible = False
-        Me.dbMap.Size = New System.Drawing.Size(476, 323)
+        Me.dbMap.Size = New System.Drawing.Size(477, 366)
         Me.dbMap.TabIndex = 0
         '
         'cboMap
@@ -72,8 +82,8 @@ Partial Class frmEditMap
         '
         'btnSave
         '
-        Me.btnSave.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.btnSave.Location = New System.Drawing.Point(332, 488)
+        Me.btnSave.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
+        Me.btnSave.Location = New System.Drawing.Point(319, 531)
         Me.btnSave.Name = "btnSave"
         Me.btnSave.Size = New System.Drawing.Size(75, 23)
         Me.btnSave.TabIndex = 3
@@ -101,11 +111,11 @@ Partial Class frmEditMap
         'lbAvailableFields
         '
         Me.lbAvailableFields.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
-            Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
+            Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.lbAvailableFields.FormattingEnabled = True
-        Me.lbAvailableFields.Location = New System.Drawing.Point(521, 146)
+        Me.lbAvailableFields.Location = New System.Drawing.Point(646, 146)
         Me.lbAvailableFields.Name = "lbAvailableFields"
-        Me.lbAvailableFields.Size = New System.Drawing.Size(127, 316)
+        Me.lbAvailableFields.Size = New System.Drawing.Size(127, 368)
         Me.lbAvailableFields.TabIndex = 8
         '
         'Label4
@@ -119,8 +129,10 @@ Partial Class frmEditMap
         '
         'lblSampleFields
         '
+        Me.lblSampleFields.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
+            Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.lblSampleFields.AutoSize = True
-        Me.lblSampleFields.Location = New System.Drawing.Point(518, 130)
+        Me.lblSampleFields.Location = New System.Drawing.Point(644, 130)
         Me.lblSampleFields.Name = "lblSampleFields"
         Me.lblSampleFields.Size = New System.Drawing.Size(99, 13)
         Me.lblSampleFields.TabIndex = 10
@@ -128,8 +140,8 @@ Partial Class frmEditMap
         '
         'btnClose
         '
-        Me.btnClose.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.btnClose.Location = New System.Drawing.Point(413, 488)
+        Me.btnClose.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
+        Me.btnClose.Location = New System.Drawing.Point(400, 531)
         Me.btnClose.Name = "btnClose"
         Me.btnClose.Size = New System.Drawing.Size(75, 23)
         Me.btnClose.TabIndex = 11
@@ -168,8 +180,10 @@ Partial Class frmEditMap
         '
         'Label6
         '
+        Me.Label6.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
+            Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.Label6.AutoSize = True
-        Me.Label6.Location = New System.Drawing.Point(651, 130)
+        Me.Label6.Location = New System.Drawing.Point(502, 130)
         Me.Label6.Name = "Label6"
         Me.Label6.Size = New System.Drawing.Size(92, 13)
         Me.Label6.TabIndex = 17
@@ -178,18 +192,106 @@ Partial Class frmEditMap
         'lbTargetColumns
         '
         Me.lbTargetColumns.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
-            Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
+            Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.lbTargetColumns.FormattingEnabled = True
-        Me.lbTargetColumns.Location = New System.Drawing.Point(654, 146)
+        Me.lbTargetColumns.Location = New System.Drawing.Point(504, 146)
         Me.lbTargetColumns.Name = "lbTargetColumns"
-        Me.lbTargetColumns.Size = New System.Drawing.Size(127, 316)
+        Me.lbTargetColumns.Size = New System.Drawing.Size(127, 368)
         Me.lbTargetColumns.TabIndex = 16
+        '
+        'btnAddPair
+        '
+        Me.btnAddPair.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.btnAddPair.Enabled = False
+        Me.btnAddPair.Location = New System.Drawing.Point(548, 520)
+        Me.btnAddPair.Name = "btnAddPair"
+        Me.btnAddPair.Size = New System.Drawing.Size(177, 24)
+        Me.btnAddPair.TabIndex = 18
+        Me.btnAddPair.Text = "Add Highlighted Pair to Map"
+        Me.btnAddPair.UseVisualStyleBackColor = True
+        '
+        'GroupBox1
+        '
+        Me.GroupBox1.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.GroupBox1.BackColor = System.Drawing.SystemColors.Info
+        Me.GroupBox1.Controls.Add(Me.Label8)
+        Me.GroupBox1.Controls.Add(Me.Label7)
+        Me.GroupBox1.Controls.Add(Me.Button1)
+        Me.GroupBox1.Controls.Add(Me.txtNewCode)
+        Me.GroupBox1.Controls.Add(Me.txtNewDesc)
+        Me.GroupBox1.Location = New System.Drawing.Point(516, 18)
+        Me.GroupBox1.Name = "GroupBox1"
+        Me.GroupBox1.Size = New System.Drawing.Size(275, 85)
+        Me.GroupBox1.TabIndex = 24
+        Me.GroupBox1.TabStop = False
+        Me.GroupBox1.Text = "Clone to New Template"
+        '
+        'Button1
+        '
+        Me.Button1.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
+        Me.Button1.Location = New System.Drawing.Point(6, 23)
+        Me.Button1.Name = "Button1"
+        Me.Button1.Size = New System.Drawing.Size(73, 39)
+        Me.Button1.TabIndex = 24
+        Me.Button1.Text = "Save As:  >"
+        Me.Button1.UseVisualStyleBackColor = True
+        '
+        'txtNewCode
+        '
+        Me.txtNewCode.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
+        Me.txtNewCode.BackColor = System.Drawing.SystemColors.Info
+        Me.txtNewCode.Location = New System.Drawing.Point(147, 23)
+        Me.txtNewCode.Name = "txtNewCode"
+        Me.txtNewCode.Size = New System.Drawing.Size(122, 20)
+        Me.txtNewCode.TabIndex = 23
+        '
+        'txtNewDesc
+        '
+        Me.txtNewDesc.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
+        Me.txtNewDesc.BackColor = System.Drawing.SystemColors.Info
+        Me.txtNewDesc.Location = New System.Drawing.Point(147, 42)
+        Me.txtNewDesc.Name = "txtNewDesc"
+        Me.txtNewDesc.Size = New System.Drawing.Size(122, 20)
+        Me.txtNewDesc.TabIndex = 22
+        '
+        'Label8
+        '
+        Me.Label8.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
+        Me.Label8.AutoSize = True
+        Me.Label8.Location = New System.Drawing.Point(85, 42)
+        Me.Label8.Name = "Label8"
+        Me.Label8.Size = New System.Drawing.Size(60, 13)
+        Me.Label8.TabIndex = 26
+        Me.Label8.Text = "New Desc."
+        '
+        'Label7
+        '
+        Me.Label7.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
+        Me.Label7.AutoSize = True
+        Me.Label7.Location = New System.Drawing.Point(85, 27)
+        Me.Label7.Name = "Label7"
+        Me.Label7.Size = New System.Drawing.Size(57, 13)
+        Me.Label7.TabIndex = 25
+        Me.Label7.Text = "New Code"
+        '
+        'Button2
+        '
+        Me.Button2.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
+        Me.Button2.Location = New System.Drawing.Point(12, 531)
+        Me.Button2.Name = "Button2"
+        Me.Button2.Size = New System.Drawing.Size(75, 23)
+        Me.Button2.TabIndex = 25
+        Me.Button2.Text = "Delete Map"
+        Me.Button2.UseVisualStyleBackColor = True
         '
         'frmEditMap
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-        Me.ClientSize = New System.Drawing.Size(815, 537)
+        Me.ClientSize = New System.Drawing.Size(803, 580)
+        Me.Controls.Add(Me.Button2)
+        Me.Controls.Add(Me.GroupBox1)
+        Me.Controls.Add(Me.btnAddPair)
         Me.Controls.Add(Me.Label6)
         Me.Controls.Add(Me.lbTargetColumns)
         Me.Controls.Add(Me.txtTargetTable)
@@ -209,6 +311,8 @@ Partial Class frmEditMap
         Me.Name = "frmEditMap"
         Me.Text = "Edit Map"
         CType(Me.dbMap, System.ComponentModel.ISupportInitialize).EndInit()
+        Me.GroupBox1.ResumeLayout(False)
+        Me.GroupBox1.PerformLayout()
         Me.ResumeLayout(False)
         Me.PerformLayout()
 
@@ -230,4 +334,12 @@ Partial Class frmEditMap
     Friend WithEvents Label5 As Label
     Friend WithEvents Label6 As Label
     Friend WithEvents lbTargetColumns As ListBox
+    Friend WithEvents btnAddPair As Button
+    Friend WithEvents GroupBox1 As GroupBox
+    Friend WithEvents Label8 As Label
+    Friend WithEvents Label7 As Label
+    Friend WithEvents Button1 As Button
+    Friend WithEvents txtNewCode As TextBox
+    Friend WithEvents txtNewDesc As TextBox
+    Friend WithEvents Button2 As Button
 End Class
