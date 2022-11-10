@@ -55,7 +55,7 @@ Partial Class UploadCRFile
         '
         Me.txtCRFile.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.txtCRFile.Location = New System.Drawing.Point(107, 297)
+        Me.txtCRFile.Location = New System.Drawing.Point(109, 135)
         Me.txtCRFile.Name = "txtCRFile"
         Me.txtCRFile.Size = New System.Drawing.Size(777, 20)
         Me.txtCRFile.TabIndex = 0
@@ -63,7 +63,7 @@ Partial Class UploadCRFile
         'Label1
         '
         Me.Label1.AutoSize = True
-        Me.Label1.Location = New System.Drawing.Point(11, 300)
+        Me.Label1.Location = New System.Drawing.Point(13, 138)
         Me.Label1.Name = "Label1"
         Me.Label1.Size = New System.Drawing.Size(90, 13)
         Me.Label1.TabIndex = 1
@@ -77,7 +77,7 @@ Partial Class UploadCRFile
         '
         Me.btnOpen.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.btnOpen.Font = New System.Drawing.Font("Microsoft Sans Serif", 6.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.btnOpen.Location = New System.Drawing.Point(890, 298)
+        Me.btnOpen.Location = New System.Drawing.Point(892, 136)
         Me.btnOpen.Name = "btnOpen"
         Me.btnOpen.Size = New System.Drawing.Size(21, 20)
         Me.btnOpen.TabIndex = 2
@@ -87,7 +87,7 @@ Partial Class UploadCRFile
         'btnUpload
         '
         Me.btnUpload.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.btnUpload.Location = New System.Drawing.Point(754, 545)
+        Me.btnUpload.Location = New System.Drawing.Point(754, 439)
         Me.btnUpload.Name = "btnUpload"
         Me.btnUpload.Size = New System.Drawing.Size(75, 23)
         Me.btnUpload.TabIndex = 3
@@ -97,7 +97,7 @@ Partial Class UploadCRFile
         'btnClose
         '
         Me.btnClose.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.btnClose.Location = New System.Drawing.Point(835, 545)
+        Me.btnClose.Location = New System.Drawing.Point(835, 439)
         Me.btnClose.Name = "btnClose"
         Me.btnClose.Size = New System.Drawing.Size(75, 23)
         Me.btnClose.TabIndex = 4
@@ -107,7 +107,7 @@ Partial Class UploadCRFile
         'Label2
         '
         Me.Label2.AutoSize = True
-        Me.Label2.Location = New System.Drawing.Point(8, 9)
+        Me.Label2.Location = New System.Drawing.Point(8, 30)
         Me.Label2.Name = "Label2"
         Me.Label2.Size = New System.Drawing.Size(105, 13)
         Me.Label2.TabIndex = 6
@@ -118,7 +118,7 @@ Partial Class UploadCRFile
         Me.cboMap.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.cboMap.FormattingEnabled = True
-        Me.cboMap.Location = New System.Drawing.Point(120, 5)
+        Me.cboMap.Location = New System.Drawing.Point(120, 26)
         Me.cboMap.Name = "cboMap"
         Me.cboMap.Size = New System.Drawing.Size(766, 21)
         Me.cboMap.TabIndex = 7
@@ -130,7 +130,7 @@ Partial Class UploadCRFile
         Me.dbMap.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells
         Me.dbMap.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCells
         Me.dbMap.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
-        Me.dbMap.Location = New System.Drawing.Point(12, 133)
+        Me.dbMap.Location = New System.Drawing.Point(919, 169)
         Me.dbMap.MultiSelect = False
         Me.dbMap.Name = "dbMap"
         Me.dbMap.ReadOnly = True
@@ -139,24 +139,26 @@ Partial Class UploadCRFile
         Me.dbMap.RowsDefaultCellStyle = DataGridViewCellStyle1
         Me.dbMap.RowTemplate.Height = 18
         Me.dbMap.RowTemplate.ReadOnly = True
-        Me.dbMap.Size = New System.Drawing.Size(902, 147)
+        Me.dbMap.Size = New System.Drawing.Size(102, 147)
         Me.dbMap.TabIndex = 8
+        Me.dbMap.Visible = False
         '
         'Label3
         '
         Me.Label3.AutoSize = True
-        Me.Label3.Location = New System.Drawing.Point(12, 117)
+        Me.Label3.Location = New System.Drawing.Point(912, 153)
         Me.Label3.Name = "Label3"
         Me.Label3.Size = New System.Drawing.Size(79, 13)
         Me.Label3.TabIndex = 9
         Me.Label3.Text = "Data Mappings"
+        Me.Label3.Visible = False
         '
         'dbMapz
         '
         Me.dbMapz.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.dbMapz.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
-        Me.dbMapz.Location = New System.Drawing.Point(12, 68)
+        Me.dbMapz.Location = New System.Drawing.Point(11, 70)
         Me.dbMapz.MultiSelect = False
         Me.dbMapz.Name = "dbMapz"
         Me.dbMapz.ReadOnly = True
@@ -167,7 +169,7 @@ Partial Class UploadCRFile
         'Label4
         '
         Me.Label4.AutoSize = True
-        Me.Label4.Location = New System.Drawing.Point(13, 52)
+        Me.Label4.Location = New System.Drawing.Point(12, 54)
         Me.Label4.Name = "Label4"
         Me.Label4.Size = New System.Drawing.Size(66, 13)
         Me.Label4.TabIndex = 11
@@ -176,11 +178,11 @@ Partial Class UploadCRFile
         'Label5
         '
         Me.Label5.AutoSize = True
-        Me.Label5.Location = New System.Drawing.Point(11, 333)
+        Me.Label5.Location = New System.Drawing.Point(13, 165)
         Me.Label5.Name = "Label5"
-        Me.Label5.Size = New System.Drawing.Size(71, 13)
+        Me.Label5.Size = New System.Drawing.Size(98, 13)
         Me.Label5.TabIndex = 12
-        Me.Label5.Text = "Data Preview"
+        Me.Label5.Text = "Input Data Preview"
         '
         'gvData
         '
@@ -190,7 +192,7 @@ Partial Class UploadCRFile
         Me.gvData.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells
         Me.gvData.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCells
         Me.gvData.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
-        Me.gvData.Location = New System.Drawing.Point(11, 348)
+        Me.gvData.Location = New System.Drawing.Point(11, 185)
         Me.gvData.MultiSelect = False
         Me.gvData.Name = "gvData"
         Me.gvData.ReadOnly = True
@@ -198,14 +200,14 @@ Partial Class UploadCRFile
         DataGridViewCellStyle2.Font = New System.Drawing.Font("Consolas", 6.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.gvData.RowsDefaultCellStyle = DataGridViewCellStyle2
         Me.gvData.RowTemplate.ReadOnly = True
-        Me.gvData.Size = New System.Drawing.Size(902, 191)
+        Me.gvData.Size = New System.Drawing.Size(902, 248)
         Me.gvData.TabIndex = 13
         '
         'chkNoUpdate
         '
         Me.chkNoUpdate.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
         Me.chkNoUpdate.AutoSize = True
-        Me.chkNoUpdate.Location = New System.Drawing.Point(6, 545)
+        Me.chkNoUpdate.Location = New System.Drawing.Point(6, 442)
         Me.chkNoUpdate.Name = "chkNoUpdate"
         Me.chkNoUpdate.Size = New System.Drawing.Size(107, 17)
         Me.chkNoUpdate.TabIndex = 14
@@ -216,7 +218,7 @@ Partial Class UploadCRFile
         'btnEditMap
         '
         Me.btnEditMap.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
-        Me.btnEditMap.Location = New System.Drawing.Point(302, 545)
+        Me.btnEditMap.Location = New System.Drawing.Point(120, 439)
         Me.btnEditMap.Name = "btnEditMap"
         Me.btnEditMap.Size = New System.Drawing.Size(113, 23)
         Me.btnEditMap.TabIndex = 15
@@ -227,7 +229,7 @@ Partial Class UploadCRFile
         '
         Me.btnMapRefresh.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.btnMapRefresh.Image = Global.AAC_CRUploader.My.Resources.Resources.Refresh
-        Me.btnMapRefresh.Location = New System.Drawing.Point(892, 4)
+        Me.btnMapRefresh.Location = New System.Drawing.Point(892, 25)
         Me.btnMapRefresh.Name = "btnMapRefresh"
         Me.btnMapRefresh.Size = New System.Drawing.Size(23, 23)
         Me.btnMapRefresh.TabIndex = 16
@@ -236,7 +238,7 @@ Partial Class UploadCRFile
         'StatusStrip1
         '
         Me.StatusStrip1.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.ToolStripStatusLabel1})
-        Me.StatusStrip1.Location = New System.Drawing.Point(0, 586)
+        Me.StatusStrip1.Location = New System.Drawing.Point(0, 471)
         Me.StatusStrip1.Name = "StatusStrip1"
         Me.StatusStrip1.Size = New System.Drawing.Size(954, 22)
         Me.StatusStrip1.TabIndex = 18
@@ -250,30 +252,32 @@ Partial Class UploadCRFile
         '
         'chkValidate
         '
+        Me.chkValidate.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
         Me.chkValidate.AutoSize = True
         Me.chkValidate.Checked = True
         Me.chkValidate.CheckState = System.Windows.Forms.CheckState.Checked
-        Me.chkValidate.Location = New System.Drawing.Point(623, 551)
+        Me.chkValidate.Location = New System.Drawing.Point(562, 443)
         Me.chkValidate.Name = "chkValidate"
-        Me.chkValidate.Size = New System.Drawing.Size(125, 17)
+        Me.chkValidate.Size = New System.Drawing.Size(156, 17)
         Me.chkValidate.TabIndex = 19
-        Me.chkValidate.Text = "Validate after Upload"
+        Me.chkValidate.Text = "Create Session after upload"
         Me.chkValidate.UseVisualStyleBackColor = True
         '
         'btnViewLog
         '
-        Me.btnViewLog.Location = New System.Drawing.Point(421, 545)
+        Me.btnViewLog.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
+        Me.btnViewLog.Location = New System.Drawing.Point(239, 439)
         Me.btnViewLog.Name = "btnViewLog"
         Me.btnViewLog.Size = New System.Drawing.Size(113, 23)
         Me.btnViewLog.TabIndex = 20
-        Me.btnViewLog.Text = "View Validation Log"
+        Me.btnViewLog.Text = "View Log"
         Me.btnViewLog.UseVisualStyleBackColor = True
         '
         'UploadCRFile
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-        Me.ClientSize = New System.Drawing.Size(954, 608)
+        Me.ClientSize = New System.Drawing.Size(954, 493)
         Me.Controls.Add(Me.btnViewLog)
         Me.Controls.Add(Me.chkValidate)
         Me.Controls.Add(Me.StatusStrip1)

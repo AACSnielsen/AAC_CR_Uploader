@@ -61,6 +61,8 @@ Public Class frmEditMap
             txtReceiptID.Text = SQLCtl.sqlds.Tables(0).Rows(0)("ReceiptID").ToString
             txtFileMask.Text = SQLCtl.sqlds.Tables(0).Rows(0)("FileMask").ToString
             txtTargetTable.Text = SQLCtl.sqlds.Tables(0).Rows(0)("TargetTable").ToString
+            CBOSheetName.Text = SQLCtl.sqlds.Tables(0).Rows(0)("XLSheetName").ToString
+            cboFileType.Text = SQLCtl.sqlds.Tables(0).Rows(0)("FileType").ToString
 
             lCmdText = "Select RowUno, Mapcode, ApplicationType, TargetColumn, SourceColumnLabel, DataType from _aac_CRMAP where mapcode = '" & cboMap.SelectedValue & "' order by applicationType DESC;"
             '"Select MapCode, MapDesc, FileMask, FileType, ReceiptID from _aac_crmapz where mapcode = '" & cboMap.SelectedValue & "';" &
@@ -69,8 +71,10 @@ Public Class frmEditMap
             ldsMap.clear
 
             ldaMap.Fill(ldsMap)
-
+            ' If source file was identified on previous screen, load columns into AvailableFields list
+            ' gCRDataFile is a DataSet object for the selected file
             With lbAvailableFields
+                .Items.Clear()
                 If UploadCRFile.txtCRFile.Text <> "" Then
                     For Each col In UploadCRFile.gCRDataFile.Tables(0).Columns
                         .Items.Add(col.ToString)
@@ -81,7 +85,8 @@ Public Class frmEditMap
                 .Items.Add("%User%")
                 .Items.Add("%FileName%")
                 .Items.Add("%ImportNum%")
-                .Items.Add("%TranlINE%")
+                .Items.Add("%TranNum%")
+                .Items.Add("%TranLine%")
                 .Items.Add("%Time%")
             End With
 
@@ -155,9 +160,11 @@ Public Class frmEditMap
         '        lrow.Cells(1).Value = cboMap.Text
         '    End If
         'Next
-        ldaMap.Update(ldsMap)
+        ldaMap.Update(ldsMap) ' THis sill update the map from the data bound grid
         Dim lCmd As String = "Update _aac_CRMAPZ set receiptid = '" & txtReceiptID.Text & "', FileMask = '" & txtFileMask.Text &
                             "', TargetTable = '" & txtTargetTable.Text &
+                            "', FileType = '" & cboFileType.Text &
+                            "', XLSheetName = '" & CBOSheetName.Text &
                             "' where mapcode = '" &
             cboMap.SelectedValue & "'"
         SQLCtl.ExecCmd(lCmd, gSQLConnection)
@@ -303,5 +310,21 @@ Public Class frmEditMap
             End With
             FormLoad = False
         End If
+    End Sub
+
+    Private Sub txtFileMask_TextChanged(sender As Object, e As EventArgs) Handles txtFileMask.TextChanged
+        btnSave.Enabled = True
+    End Sub
+
+    Private Sub cboFileType_SelectedIndexChanged(sender As Object, e As EventArgs) Handles cboFileType.SelectedIndexChanged
+        btnSave.Enabled = True
+    End Sub
+
+    Private Sub CBOSheetName_SelectedIndexChanged(sender As Object, e As EventArgs) Handles CBOSheetName.SelectedIndexChanged
+        btnSave.Enabled = True
+    End Sub
+
+    Private Sub txtReceiptID_TextChanged(sender As Object, e As EventArgs) Handles txtReceiptID.TextChanged
+        btnSave.Enabled = True
     End Sub
 End Class
