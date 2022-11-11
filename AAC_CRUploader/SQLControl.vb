@@ -16,6 +16,9 @@ Public Class SQLControl
     Public Sub ExecQuery(pQuery As String, pConnection As SqlConnection)
         Dim MyOpen As Boolean = False
         Try
+            If UploadCRFile.chkLogDebug.Checked Then
+                UploadCRFile.WriteLog(pQuery.ToString)
+            End If
             If pConnection.State <> ConnectionState.Open Then
                 pConnection.Open()
                 MyOpen = True
@@ -40,6 +43,10 @@ Public Class SQLControl
     Public Sub ExecCmd(pQuery As String, pConnection As SqlConnection)
         Dim MyOpen As Boolean = False
         Try
+            If UploadCRFile.chkLogDebug.Checked Then
+                UploadCRFile.WriteLog(pQuery.ToString)
+            End If
+
             If pConnection.State <> ConnectionState.Open Then
                 pConnection.Open()
                 MyOpen = True

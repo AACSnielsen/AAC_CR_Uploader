@@ -41,6 +41,7 @@ Public Class frmEditMap
             .DataSource = SQLCtl.sqlds.Tables(0)
             .DisplayMember = "MapDesc"
             .ValueMember = "MapCode"
+            .Text = UploadCRFile.CurrSelectedMap
         End With
 
         btnSave.Enabled = False
@@ -56,7 +57,7 @@ Public Class frmEditMap
             ' Dim lSqlConnection As New SqlClient.SqlConnection
 
             Dim lCmdText As String = ""
-            lCmdText = "Select * from _aac_CRMAPZ where mapcode = '" & cboMap.SelectedValue & "'"
+            lCmdText = "Select 	MapCode,MapDesc,FileMask,FileType,Inactive,ReceiptID,TargetTable,XLSheetName from _aac_CRMAPZ where mapcode = '" & cboMap.SelectedValue & "'"
             SQLCtl.ExecQuery(lCmdText, gSQLConnection)
             txtReceiptID.Text = SQLCtl.sqlds.Tables(0).Rows(0)("ReceiptID").ToString
             txtFileMask.Text = SQLCtl.sqlds.Tables(0).Rows(0)("FileMask").ToString
@@ -170,6 +171,7 @@ Public Class frmEditMap
         SQLCtl.ExecCmd(lCmd, gSQLConnection)
         btnSave.Enabled = False
         cboMap_SelectedIndexChanged(sender, e)
+        UploadCRFile.CurrSelectedMap = cboMap.SelectedText
     End Sub
 
 
@@ -270,13 +272,13 @@ Public Class frmEditMap
     Private Sub Button1_Click_1(sender As Object, e As EventArgs) Handles Button1.Click
         If txtNewCode.Text <> "" And txtNewDesc.Text <> "" Then
             Dim lcmd As String = ""
-            lcmd = "insert into _AAC_CRMAP" &
+            lcmd = "insert into _AAC_CRMAP (MapCode, ApplicationType, StageTable, SourceColumnLabel, TargetColumn, DataType) " &
                 " select '" & txtNewCode.Text & "',	ApplicationType	,StageTable	,SourceColumnLabel	,TargetColumn	,DataType from _AAC_CRMAP where mapcode = '" & cboMap.SelectedValue & "'" &
-                " insert into _AAC_CRMAPZ" &
-                " select '" & txtNewCode.Text & "','" & txtNewDesc.Text & "' ,FileMask	,FileType	,Inactive	,ReceiptID	,TargetTable from _AAC_CRMAPZ where mapcode = '" & cboMap.SelectedValue & "'"
+                " insert into _AAC_CRMAPZ (MapCode, MapDesc, FileMask, FileType, Inactive, ReceiptID, TargetTable, XLSheetName) " &
+                " select '" & txtNewCode.Text & "','" & txtNewDesc.Text & "' ,FileMask	,FileType	,Inactive	,ReceiptID	,TargetTable, XLSheetName from _AAC_CRMAPZ where mapcode = '" & cboMap.SelectedValue & "'"
             SQLCtl.ExecCmd(lcmd, gSQLConnection)
 
-            SQLCtl.ExecQuery("Select Mapcode, MapDesc, FileMask, FileType from _aac_CRMAPZ where inactive <> 'Y'", gSQLConnection)
+            SQLCtl.ExecQuery("Select Mapcode, MapDesc, FileMask, FileType, ReceiptID, XLSheetName from _aac_CRMAPZ where inactive <> 'Y'", gSQLConnection)
             FormLoad = True
             With cboMap
                 .DataSource = SQLCtl.sqlds.Tables(0)
