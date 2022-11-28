@@ -24,6 +24,7 @@ Public Class SQLControl
                 MyOpen = True
             End If
             sqlcmd = New SqlCommand(pQuery, pConnection)
+            sqlcmd.CommandTimeout = 300
             Params.ForEach(Sub(x) sqlcmd.Parameters.Add(x))
             Params.Clear()
 
@@ -51,7 +52,9 @@ Public Class SQLControl
                 pConnection.Open()
                 MyOpen = True
             End If
+
             sqlcmd = New SqlCommand(pQuery, pConnection)
+            sqlcmd.CommandTimeout = 300
             Params.ForEach(Sub(x) sqlcmd.Parameters.Add(x))
             Params.Clear()
 

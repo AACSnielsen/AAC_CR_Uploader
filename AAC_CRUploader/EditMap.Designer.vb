@@ -50,6 +50,7 @@ Partial Class frmEditMap
         Me.cboFileType = New System.Windows.Forms.ComboBox()
         Me.CBOSheetName = New System.Windows.Forms.ComboBox()
         Me.Label10 = New System.Windows.Forms.Label()
+        Me.bntValidate = New System.Windows.Forms.Button()
         CType(Me.dbMap, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.GroupBox1.SuspendLayout()
         Me.SuspendLayout()
@@ -64,7 +65,7 @@ Partial Class frmEditMap
         Me.dbMap.MultiSelect = False
         Me.dbMap.Name = "dbMap"
         Me.dbMap.RowHeadersVisible = False
-        Me.dbMap.Size = New System.Drawing.Size(477, 372)
+        Me.dbMap.Size = New System.Drawing.Size(477, 426)
         Me.dbMap.TabIndex = 0
         '
         'cboMap
@@ -87,7 +88,7 @@ Partial Class frmEditMap
         'btnSave
         '
         Me.btnSave.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
-        Me.btnSave.Location = New System.Drawing.Point(319, 563)
+        Me.btnSave.Location = New System.Drawing.Point(333, 604)
         Me.btnSave.Name = "btnSave"
         Me.btnSave.Size = New System.Drawing.Size(75, 23)
         Me.btnSave.TabIndex = 3
@@ -119,7 +120,7 @@ Partial Class frmEditMap
         Me.lbAvailableFields.FormattingEnabled = True
         Me.lbAvailableFields.Location = New System.Drawing.Point(646, 172)
         Me.lbAvailableFields.Name = "lbAvailableFields"
-        Me.lbAvailableFields.Size = New System.Drawing.Size(127, 368)
+        Me.lbAvailableFields.Size = New System.Drawing.Size(127, 420)
         Me.lbAvailableFields.TabIndex = 8
         '
         'Label4
@@ -145,7 +146,7 @@ Partial Class frmEditMap
         'btnClose
         '
         Me.btnClose.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
-        Me.btnClose.Location = New System.Drawing.Point(400, 563)
+        Me.btnClose.Location = New System.Drawing.Point(414, 604)
         Me.btnClose.Name = "btnClose"
         Me.btnClose.Size = New System.Drawing.Size(75, 23)
         Me.btnClose.TabIndex = 11
@@ -200,16 +201,16 @@ Partial Class frmEditMap
         Me.lbTargetColumns.FormattingEnabled = True
         Me.lbTargetColumns.Location = New System.Drawing.Point(504, 172)
         Me.lbTargetColumns.Name = "lbTargetColumns"
-        Me.lbTargetColumns.Size = New System.Drawing.Size(127, 368)
+        Me.lbTargetColumns.Size = New System.Drawing.Size(127, 420)
         Me.lbTargetColumns.TabIndex = 16
         '
         'btnAddPair
         '
         Me.btnAddPair.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.btnAddPair.Enabled = False
-        Me.btnAddPair.Location = New System.Drawing.Point(548, 552)
+        Me.btnAddPair.Location = New System.Drawing.Point(505, 603)
         Me.btnAddPair.Name = "btnAddPair"
-        Me.btnAddPair.Size = New System.Drawing.Size(177, 24)
+        Me.btnAddPair.Size = New System.Drawing.Size(268, 24)
         Me.btnAddPair.TabIndex = 18
         Me.btnAddPair.Text = "Add Highlighted Pair to Map"
         Me.btnAddPair.UseVisualStyleBackColor = True
@@ -281,7 +282,7 @@ Partial Class frmEditMap
         'Button2
         '
         Me.Button2.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
-        Me.Button2.Location = New System.Drawing.Point(12, 563)
+        Me.Button2.Location = New System.Drawing.Point(13, 604)
         Me.Button2.Name = "Button2"
         Me.Button2.Size = New System.Drawing.Size(75, 23)
         Me.Button2.TabIndex = 25
@@ -324,11 +325,22 @@ Partial Class frmEditMap
         Me.Label10.TabIndex = 28
         Me.Label10.Text = "Sheet Name"
         '
+        'bntValidate
+        '
+        Me.bntValidate.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
+        Me.bntValidate.Location = New System.Drawing.Point(94, 604)
+        Me.bntValidate.Name = "bntValidate"
+        Me.bntValidate.Size = New System.Drawing.Size(75, 23)
+        Me.bntValidate.TabIndex = 30
+        Me.bntValidate.Text = "Validate Map"
+        Me.bntValidate.UseVisualStyleBackColor = True
+        '
         'frmEditMap
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-        Me.ClientSize = New System.Drawing.Size(803, 612)
+        Me.ClientSize = New System.Drawing.Size(803, 639)
+        Me.Controls.Add(Me.bntValidate)
         Me.Controls.Add(Me.CBOSheetName)
         Me.Controls.Add(Me.Label10)
         Me.Controls.Add(Me.cboFileType)
@@ -390,4 +402,5 @@ Partial Class frmEditMap
     Friend WithEvents cboFileType As ComboBox
     Friend WithEvents CBOSheetName As ComboBox
     Friend WithEvents Label10 As Label
+    Friend WithEvents bntValidate As Button
 End Class

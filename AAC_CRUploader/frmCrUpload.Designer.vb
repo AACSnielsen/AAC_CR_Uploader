@@ -41,10 +41,11 @@ Partial Class UploadCRFile
         Me.btnEditMap = New System.Windows.Forms.Button()
         Me.btnMapRefresh = New System.Windows.Forms.Button()
         Me.StatusStrip1 = New System.Windows.Forms.StatusStrip()
-        Me.ToolStripStatusLabel1 = New System.Windows.Forms.ToolStripStatusLabel()
+        Me.StatusText = New System.Windows.Forms.ToolStripStatusLabel()
         Me.chkValidate = New System.Windows.Forms.CheckBox()
         Me.btnViewLog = New System.Windows.Forms.Button()
         Me.chkLogDebug = New System.Windows.Forms.CheckBox()
+        Me.ActivityText = New System.Windows.Forms.ToolStripStatusLabel()
         CType(Me.dbMap, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.dbMapz, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.gvData, System.ComponentModel.ISupportInitialize).BeginInit()
@@ -226,18 +227,18 @@ Partial Class UploadCRFile
         '
         'StatusStrip1
         '
-        Me.StatusStrip1.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.ToolStripStatusLabel1})
+        Me.StatusStrip1.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.StatusText, Me.ActivityText})
         Me.StatusStrip1.Location = New System.Drawing.Point(0, 471)
         Me.StatusStrip1.Name = "StatusStrip1"
         Me.StatusStrip1.Size = New System.Drawing.Size(954, 22)
         Me.StatusStrip1.TabIndex = 18
         Me.StatusStrip1.Text = "StatusStrip1"
         '
-        'ToolStripStatusLabel1
+        'StatusText
         '
-        Me.ToolStripStatusLabel1.Name = "ToolStripStatusLabel1"
-        Me.ToolStripStatusLabel1.Size = New System.Drawing.Size(60, 17)
-        Me.ToolStripStatusLabel1.Text = "StatusText"
+        Me.StatusText.Name = "StatusText"
+        Me.StatusText.Size = New System.Drawing.Size(60, 17)
+        Me.StatusText.Text = "StatusText"
         '
         'chkValidate
         '
@@ -271,6 +272,12 @@ Partial Class UploadCRFile
         Me.chkLogDebug.TabIndex = 21
         Me.chkLogDebug.Text = "Log Debugging"
         Me.chkLogDebug.UseVisualStyleBackColor = True
+        '
+        'ActivityText
+        '
+        Me.ActivityText.Name = "ActivityText"
+        Me.ActivityText.Size = New System.Drawing.Size(68, 17)
+        Me.ActivityText.Text = "ActivityText"
         '
         'UploadCRFile
         '
@@ -325,8 +332,9 @@ Partial Class UploadCRFile
     Friend WithEvents btnEditMap As Button
     Friend WithEvents btnMapRefresh As Button
     Friend WithEvents StatusStrip1 As StatusStrip
-    Friend WithEvents ToolStripStatusLabel1 As ToolStripStatusLabel
+    Friend WithEvents StatusText As ToolStripStatusLabel
     Friend WithEvents chkValidate As CheckBox
     Friend WithEvents btnViewLog As Button
     Friend WithEvents chkLogDebug As CheckBox
+    Friend WithEvents ActivityText As ToolStripStatusLabel
 End Class

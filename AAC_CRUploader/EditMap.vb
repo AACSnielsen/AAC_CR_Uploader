@@ -8,6 +8,8 @@ Imports System.Xml
 
 Public Class frmEditMap
     Protected Friend gdtMap As DataTable
+    Protected Friend gdtTargetColumns As DataTable
+    Protected Friend gdtAvailableColumns As DataTable
     Protected Friend FormLoad As Boolean
     Dim ldaMap As SqlDataAdapter
     Dim ldsMap = New DataSet
@@ -65,7 +67,7 @@ Public Class frmEditMap
             CBOSheetName.Text = SQLCtl.sqlds.Tables(0).Rows(0)("XLSheetName").ToString
             cboFileType.Text = SQLCtl.sqlds.Tables(0).Rows(0)("FileType").ToString
 
-            lCmdText = "Select RowUno, Mapcode, ApplicationType, TargetColumn, SourceColumnLabel, DataType from _aac_CRMAP where mapcode = '" & cboMap.SelectedValue & "' order by applicationType DESC;"
+            lCmdText = "Select RowUno, Mapcode, ApplicationType, TargetColumn, SourceColumnLabel, DataType from _aac_CRMAP where isnull(applicationtype,'') <> '' and mapcode = '" & cboMap.SelectedValue & "' order by applicationType DESC;"
             '"Select MapCode, MapDesc, FileMask, FileType, ReceiptID from _aac_crmapz where mapcode = '" & cboMap.SelectedValue & "';" &
             '"Select next value for sequence.import_num as Import_Num from _aac_crmap where mapcode = '" & cboMap.SelectedValue & "' and sourcecolumnlabel = '%ImportNum%';"
             ldaMap = New SqlDataAdapter(lCmdText, gSQLConnection)
@@ -75,6 +77,7 @@ Public Class frmEditMap
             ' If source file was identified on previous screen, load columns into AvailableFields list
             ' gCRDataFile is a DataSet object for the selected file
             With lbAvailableFields
+                gdtAvailableColumns = UploadCRFile.gCRDataFile.Tables(0)
                 .Items.Clear()
                 If UploadCRFile.txtCRFile.Text <> "" Then
                     For Each col In UploadCRFile.gCRDataFile.Tables(0).Columns
@@ -140,8 +143,8 @@ Public Class frmEditMap
                         .Rows(R).DefaultCellStyle.BackColor = Color.Honeydew
                     Else
                         .Rows(R).DefaultCellStyle.BackColor = Color.LightCyan
-
                     End If
+
                 Next
 
             End With
@@ -233,6 +236,7 @@ Public Class frmEditMap
         If txtTargetTable.Text = "" Or SQLCtl.sqlds.Tables(0).Rows.Count = 0 Then
             lbTargetColumns.Items.Add("{Enter Valid Target}")
         Else
+            gdtTargetColumns = SQLCtl.sqlds.Tables(0)
             For lRow = 0 To SQLCtl.sqlds.Tables(0).Rows.Count - 1
                 lbTargetColumns.Items.Add(SQLCtl.sqlds.Tables(0).Rows(lRow)(0))
             Next
@@ -328,5 +332,82 @@ Public Class frmEditMap
 
     Private Sub txtReceiptID_TextChanged(sender As Object, e As EventArgs) Handles txtReceiptID.TextChanged
         btnSave.Enabled = True
+    End Sub
+
+    Private Sub bntValidate_Click(sender As Object, e As EventArgs) Handles bntValidate.Click
+        ' Check mapping against sample data file
+        ' gdtmap is the mapping data table displayed in the mapping grid
+        '        columns of n ote: TargetColumn, SourceColumnLabel, DataType
+        ' gdtTargetColumns is the columns in the target SQL table
+        ' gdtAvailableColumns is the columns in the sample file
+        ' Additional available columns:
+        '            %User%, %FileName%, %ImportNum%, %TranNum%, %TranLine%, %Time%
+
+        'Verify all SourceColumnLabel values in gdtmap exist in gdtavailablecolumns where datatype = 'L' or 'K'
+        Dim MapIssuesText As String = ""
+        If btnSave.Enabled Then
+            Dim msgresp As MsgBoxResult
+            msgresp = MsgBox("Must save changes to validate.  Do you want to save now?", MsgBoxStyle.YesNoCancel, "Pending changes")
+            If msgresp = MsgBoxResult.Yes Then
+                btnSave_Click(sender, e)
+            End If
+            If msgresp = MsgBoxResult.Cancel Then
+                Exit Sub
+            End If
+        End If
+
+        Dim ColumnFound As Boolean = False
+
+        Dim drMapSource() As DataRow = gdtMap.Select("DataType = 'R' or DataType = 'L'")
+        For Each row As DataRow In drMapSource
+            ColumnFound = False
+            Debug.Print(row("SourceColumnLabel"))
+            For Each col In UploadCRFile.gCRDataFile.Tables(0).Columns
+                Debug.Print(col.ToString & ":" & row("SourceColumnLabel"))
+                If col.ToString.ToUpper = row("SourceColumnLabel").toupper Then
+                    ColumnFound = True
+                    Exit For
+                End If
+                Select Case row("SourceColumnLabel").toupper
+                    Case "%User%".ToUpper
+                        ColumnFound = True
+                    Case "%FileName%".ToUpper
+                        ColumnFound = True
+                    Case "%ImportNum%".ToUpper
+                        ColumnFound = True
+                    Case "%TranNum%".ToUpper
+                        ColumnFound = True
+                    Case "%TranLine%".ToUpper
+                        ColumnFound = True
+                    Case "%Time%".ToUpper
+                        ColumnFound = True
+                End Select
+
+            Next
+            If Not ColumnFound Then
+                MapIssuesText &= "Source column:" + row("SourceColumnLabel").ToString + " not found in file" + Environment.NewLine
+            End If
+        Next
+
+        Dim drMapTarget() As DataRow = gdtMap.Select("TargetColumn <> ''")
+        For Each row As DataRow In drMapTarget
+            ColumnFound = False
+            Debug.Print(row("TargetColumn"))
+            For Each Targetrow In gdtTargetColumns.Rows
+                Debug.Print(Targetrow("Name") & ":" & row("TargetColumn"))
+                If Targetrow("Name").toupper = row("TargetColumn").toupper Then
+                    ColumnFound = True
+                    Exit For
+                End If
+            Next
+            If Not ColumnFound Then
+                MapIssuesText &= "Target column:" + row("TargetColumn").ToString + " not found SQL Table" + Environment.NewLine
+            End If
+        Next
+
+        If MapIssuesText = "" Then
+            MapIssuesText = "None Identified"
+        End If
+        MsgBox(MapIssuesText, vbOKOnly, "Mapping Issues")
     End Sub
 End Class

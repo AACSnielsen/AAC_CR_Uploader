@@ -37,7 +37,7 @@ Public Class UploadCRFile
         'chkLogDebug.Checked = True
         gImportLogName = Application.StartupPath() & My.Application.Info.AssemblyName & ".log"
         gswLogFile = New StreamWriter(gImportLogName, True)
-        StatusStrip1.Items(0).Text = "Load"
+        ActivityText.Text = "Load"
         Dim args As String()
         args = Environment.GetCommandLineArgs
         For argIx = 1 To args.Count - 1
@@ -131,7 +131,7 @@ Public Class UploadCRFile
 
 
 
-                lCmdText = "Select Mapcode, ApplicationType, SourceColumnLabel, TargetColumn, DataType from _aac_CRMAP where mapcode = '" & cboMap.SelectedValue & "' order by applicationType DESC;" &
+                lCmdText = "Select Mapcode, ApplicationType, SourceColumnLabel, TargetColumn, DataType from _aac_CRMAP where isnull(applicationTYpe,'') <> '' and mapcode = '" & cboMap.SelectedValue & "' order by applicationType DESC;" &
                        "Select * from _aac_crmapz where mapcode = '" & CurrSelectedMap & "';"
 
                 ''Dim ldaMap As New SqlDataAdapter(lCmdText, gSQLConnection)
@@ -296,43 +296,43 @@ Public Class UploadCRFile
 
             If fileobject.Exists Then
                 ' If ACE driver does not exist, use JET driver 
-                If Microsoft.Win32.Registry.ClassesRoot.OpenSubKey("Microsoft.ACE.OLEDB.12.0\CLSID") Is Nothing Then
-                    CnStr = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" & Path.GetDirectoryName(txtCRFile.Text) & ";Extended Properties=""text;HDR=Yes;FMT=Delimited"";"
-                Else
-                    CnStr = "Provider=Microsoft.ACE.OLEDB.16.0;Data Source=" & Path.GetDirectoryName(txtCRFile.Text) & ";Extended Properties=""text;HDR=Yes;FMT=Delimited"";"
-                End If
+                'If Microsoft.Win32.Registry.ClassesRoot.OpenSubKey("Microsoft.ACE.OLEDB.16.0\CLSID") Is Nothing Then
+                CnStr = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" & Path.GetDirectoryName(txtCRFile.Text) & ";Extended Properties=""text;HDR=Yes;FMT=Delimited"";"
+                '           Else
+                '              CnStr = "Provider=Microsoft.ACE.OLEDB.16.0;Data Source=" & Path.GetDirectoryName(txtCRFile.Text) & ";Extended Properties=""text;HDR=Yes;FMT=Delimited"";"
+                '               End If
                 gCRDataFile = New DataSet
 
-                If SourceFileType = "CSV" Then
-                    Try
-                        Dim CSVSelect As String = "select * from [" & Path.GetFileName(txtCRFile.Text) & "]"
-                        Using Adp As New OleDbDataAdapter(CSVSelect, CnStr)
-                            Adp.Fill(gCRDataFile)
-                        End Using
-                        'gvData.DataSource = gCRDataFile.Tables(0)
-                        'btnUpload.Enabled = True
-                    Catch ex As Exception
-                        MsgBox(ex.Message, MsgBoxStyle.Critical, "Error in CRFile.TextChanged event.")
-                    End Try
-                End If
-                If SourceFileType = "XLS" Then
-                    Try
-                        Dim CSVSelect As String = "select * from [" & SourceXLSheetName & "]"
-                        Using Adp As New OleDbDataAdapter(CSVSelect, CnStr)
-                            Adp.Fill(gCRDataFile)
-                        End Using
-                        'gvData.DataSource = gCRDataFile.Tables(0)
-                        'btnUpload.Enabled = True
-                    Catch ex As Exception
-                        MsgBox("Verify range " + SourceXLSheetName + " exists In file " + txtCRFile.Text + vbCrLf + ex.Message, MsgBoxStyle.Critical, "CRFile.TextChanged Event. ")
-                    End Try
-                End If
-                gvData.DataSource = gCRDataFile.Tables(0)
-                btnUpload.Enabled = True
+                    If SourceFileType = "CSV" Then
+                        Try
+                            Dim CSVSelect As String = "select * from [" & Path.GetFileName(txtCRFile.Text) & "]"
+                            Using Adp As New OleDbDataAdapter(CSVSelect, CnStr)
+                                Adp.Fill(gCRDataFile)
+                            End Using
+                            'gvData.DataSource = gCRDataFile.Tables(0)
+                            'btnUpload.Enabled = True
+                        Catch ex As Exception
+                            MsgBox(ex.Message, MsgBoxStyle.Critical, "Error in CRFile.TextChanged event.")
+                        End Try
+                    End If
+                    If SourceFileType = "XLS" Then
+                        Try
+                            Dim CSVSelect As String = "select * from [" & SourceXLSheetName & "]"
+                            Using Adp As New OleDbDataAdapter(CSVSelect, CnStr)
+                                Adp.Fill(gCRDataFile)
+                            End Using
+                            'gvData.DataSource = gCRDataFile.Tables(0)
+                            'btnUpload.Enabled = True
+                        Catch ex As Exception
+                            MsgBox("Verify range " + SourceXLSheetName + " exists In file " + txtCRFile.Text + vbCrLf + ex.Message, MsgBoxStyle.Critical, "CRFile.TextChanged Event. ")
+                        End Try
+                    End If
+                    gvData.DataSource = gCRDataFile.Tables(0)
+                    btnUpload.Enabled = True
 
-            End If
+                End If
 
-            gSourceDataPath = Path.GetDirectoryName(txtCRFile.Text)
+                gSourceDataPath = Path.GetDirectoryName(txtCRFile.Text)
             If gswLogFile IsNot Nothing Then
                 gswLogFile.Close()
             End If
@@ -348,6 +348,7 @@ Public Class UploadCRFile
 
     End Sub
     Private Sub btnUpload_Click(sender As Object, e As EventArgs) Handles btnUpload.Click
+
         '================================================================================================================
         '                           PROCESS IMPORT FILE AND LOAD TO DATABASE STAGING TABLE                              '
         '================================================================================================================
@@ -366,135 +367,154 @@ Public Class UploadCRFile
         'gdtReceipts.Columns.Add("ReceiptId", System.Type.GetType("System.String"))
         'gdtReceipts.Columns.Add("ReceiptNum", System.Type.GetType("System.Int32"))
 
+        Try
 
-        StatusStrip1.Items(0).Text = "Start"
-        WriteLog("Start Upload Of " & txtCRFile.Text)
 
-        Dim lcmd As New SqlCommand
-        lcmd.Connection = gSQLConnection
+            ActivityText.Text = "Start"
+            WriteLog("Start Upload Of " & txtCRFile.Text)
 
-        ' // Test if file has already been processed by checking if it is in the load file //
-        Dim lCmdText As String = "Select count(*) As 'Count', max(_StagingDate) 'StagingDate' from " + TargetTableName + " where _SourceFile = '" & OpenFileDialog1.FileName & "'"
-        ''Dim ldaHist As New SqlDataAdapter(lCmdText, gSQLConnection)
-        Dim ldtHist As DataTable  '' was new
-        SQLCtl.ExecQuery(lCmdText, gSQLConnection)
-        ldtHist = SQLCtl.sqlds.Tables(0)
-        ''ldaHist.Fill(ldtHist)
-        If ldtHist.Rows(0)("Count") <> 0 Then
-            Dim mresp As MsgBoxResult
-            mresp = MsgBox("File " & Path.GetFileName(OpenFileDialog1.FileName) & " has already been processed." + vbCrLf + "Do you want to re-upload it?" & vbCrLf + "Last upload was on " & ldtHist.Rows(0)("StagingDate").ToString, MsgBoxStyle.Question + MsgBoxStyle.YesNo + MsgBoxStyle.DefaultButton2, "Duplicate Upload Name")
-            If mresp <> MsgBoxResult.Yes Then
-                Exit Sub '  Do not want to re-process - get out of this routine
+            Dim lcmd As New SqlCommand
+            lcmd.Connection = gSQLConnection
+
+            ' // Test if file has already been processed by checking if it is in the load file //
+            Dim lCmdText As String = "Select count(*) As 'Count', max(_StagingDate) 'StagingDate' from " + TargetTableName + " where _SourceFile = '" & OpenFileDialog1.FileName & "'"
+            ''Dim ldaHist As New SqlDataAdapter(lCmdText, gSQLConnection)
+            Dim ldtHist As DataTable  '' was new
+            SQLCtl.ExecQuery(lCmdText, gSQLConnection)
+            ldtHist = SQLCtl.sqlds.Tables(0)
+            ''ldaHist.Fill(ldtHist)
+            If ldtHist.Rows(0)("Count") <> 0 Then
+                Dim mresp As MsgBoxResult
+                mresp = MsgBox("File " & Path.GetFileName(OpenFileDialog1.FileName) & " has already been processed." + vbCrLf + "Do you want to re-upload it?" & vbCrLf + "Last upload was on " & ldtHist.Rows(0)("StagingDate").ToString, MsgBoxStyle.Question + MsgBoxStyle.YesNo + MsgBoxStyle.DefaultButton2, "Duplicate Upload Name")
+                If mresp <> MsgBoxResult.Yes Then
+                    Exit Sub '  Do not want to re-process - get out of this routine
+                End If
             End If
-        End If
 
 
-        'Open source data table                                                                                      dtCRData
-        Dim dtCRData As New DataTable ' This is the full contents
-        dtCRData = gCRDataFile.Tables(0).Copy
-        If chkLogDebug.Checked Then WriteLog("Copied gCRDataFile to dtCRData")
-        DisplayDT(dtCRData, 100)
-        'Dim strCRSelect As String = "select * from [" & Path.GetFileName(OpenFileDialog1.FileName) & "]"
-        'Dim csvConnection = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" & Path.GetDirectoryName(OpenFileDialog1.FileName) & ";Extended Properties=""text;HDR=Yes;FMT=Delimited"";"
-        'Using csvDataAdapter As New OleDbDataAdapter(strCRSelect, csvConnection)
-        '    csvDataAdapter.Fill(dtCRData)
-        'End Using
+            'Open source data table                                                                                      dtCRData
+            Dim dtCRData As New DataTable ' This is the full contents
+            dtCRData = gCRDataFile.Tables(0).Copy
+            If chkLogDebug.Checked Then WriteLog("Copied gCRDataFile to dtCRData")
+            DisplayDT(dtCRData, 100)
+            'Dim strCRSelect As String = "select * from [" & Path.GetFileName(OpenFileDialog1.FileName) & "]"
+            'Dim csvConnection = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" & Path.GetDirectoryName(OpenFileDialog1.FileName) & ";Extended Properties=""text;HDR=Yes;FMT=Delimited"";"
+            'Using csvDataAdapter As New OleDbDataAdapter(strCRSelect, csvConnection)
+            '    csvDataAdapter.Fill(dtCRData)
+            'End Using
 
 
-        ' For each type, get distinct values for mapped columns                                                         distinctRcptHeaders.
-        If chkLogDebug.Checked Then WriteLog("Get Distinct R rows from input file")
-        Dim distinctRcptHeaders As DataTable = GetDistinctRows("R", dtCRData)
+            ' For each type, get distinct values for mapped columns                                                         distinctRcptHeaders.
+            If chkLogDebug.Checked Then WriteLog("Get Distinct R rows from input file")
+            Dim distinctRcptHeaders As DataTable = GetDistinctRows("R", dtCRData)
 
-        If chkLogDebug.Checked Then WriteLog("Get TypeMap dtRcptHeaderMap for R")
-        Dim dtRcptHeaderMap As DataTable = GetTypeMap("R")
-        DisplayDT(dtRcptHeaderMap, 100)
+            If chkLogDebug.Checked Then WriteLog("Get TypeMap dtRcptHeaderMap for R")
+            Dim dtRcptHeaderMap As DataTable = GetTypeMap("R")
+            DisplayDT(dtRcptHeaderMap, 100)
 
-        ' For each type, get distinct values for mapped columns and get mapping                                                         distinctRcptRowsThisType  I (Bills)
-        Dim ThisType As String = "I"
-        Dim distinctRcptRowsThisType As DataTable
-        If chkLogDebug.Checked Then WriteLog("Get Distinct Rows for type " & ThisType)
-        distinctRcptRowsThisType = GetDistinctRows(ThisType, dtCRData)
+            ' For each type, get distinct values for mapped columns and get mapping                                                         distinctRcptRowsThisType  I (Bills)
+            Dim ThisType As String = "I"
+            Dim distinctRcptRowsThisType As DataTable
+            If chkLogDebug.Checked Then WriteLog("Get Distinct Rows for type " & ThisType)
+            distinctRcptRowsThisType = GetDistinctRows(ThisType, dtCRData)
 
-        If chkLogDebug.Checked Then WriteLog("Get map for " & ThisType)
-        Dim dtThistypeMap As DataTable = GetTypeMap(ThisType)
-        DisplayDT(dtThistypeMap, 100)
+            If chkLogDebug.Checked Then WriteLog("Get map for " & ThisType)
+            Dim dtThistypeMap As DataTable = GetTypeMap(ThisType)
+            DisplayDT(dtThistypeMap, 100)
 
-        SQLCtl.ExecQuery("Select next value for sequence.import_num as Import_Num", gSQLConnection)
-        gImportNum = SQLCtl.sqlds.Tables(0).Rows(0)(0)
+            SQLCtl.ExecQuery("Select next value for sequence.import_num as Import_Num", gSQLConnection)
+            gImportNum = SQLCtl.sqlds.Tables(0).Rows(0)(0)
 
-        ' then loop through for each subset matching the ReceiptKeyColumn                                               Process all R Receipts
-        Dim ThisTypeThisReceipt As DataTable
-        Dim distinctRcptHeader As DataRow
-        Dim TypeFilter As String = ""
-        gTranNumber = 0
-        For Each distinctRcptHeader In distinctRcptHeaders.Rows   '                                                      Receipt Header Loop
-            gTranNumber += 1
-            gTranLineNumber = 1
-            'Write R row followed by all details rows mapped
-            '  distinctRcptHeader is the current receipt header data
+            ' then loop through for each subset matching the ReceiptKeyColumn                                               Process all R Receipts
+            Dim ThisTypeThisReceipt As DataTable
+            Dim distinctRcptHeader As DataRow
+            Dim TypeFilter As String = ""
+            gTranNumber = 0
+            For Each distinctRcptHeader In distinctRcptHeaders.Rows   '                                                      Receipt Header Loop
+                gTranNumber += 1
+                gTranLineNumber = 1
+                'Write R row followed by all details rows mapped
+                '  distinctRcptHeader is the current receipt header data
 
-            Debug.Print("Start Processing: " & distinctRcptHeader(ReceiptKeyColumn).ToString)
-            'Write HeaderRow to SQL
-            WriteDataViaMap(distinctRcptHeader, dtRcptHeaderMap)
+                Debug.Print("Start Processing: " & distinctRcptHeader(ReceiptKeyColumn).ToString)
+                'Write HeaderRow to SQL
+                WriteDataViaMap(distinctRcptHeader, dtRcptHeaderMap)
 
-            'Filter I rows and write to SQL
-            TypeFilter = "[" & ReceiptKeyColumn & "] = '" & distinctRcptHeader(ReceiptKeyColumn).ToString & "'"
-            Dim SourceRowsMatchingType As DataRow() = distinctRcptRowsThisType.Select(TypeFilter)
+                'Filter I rows and write to SQL
+                TypeFilter = "[" & ReceiptKeyColumn & "] = '" & distinctRcptHeader(ReceiptKeyColumn).ToString & "'"
+                Dim SourceRowsMatchingType As DataRow() = distinctRcptRowsThisType.Select(TypeFilter)
 
-            'ThisTypeThisReceipt = SourceRowsMatchingType.CopyToDataTable
-            If chkLogDebug.Checked Then WriteLog("Get GetDistinctRows for I, " & distinctRcptHeader(ReceiptKeyColumn).ToString)
-            ThisTypeThisReceipt = GetDistinctRows("I", dtCRData, distinctRcptHeader(ReceiptKeyColumn).ToString)
+                'ThisTypeThisReceipt = SourceRowsMatchingType.CopyToDataTable
+                If chkLogDebug.Checked Then WriteLog("Get GetDistinctRows for I, " & distinctRcptHeader(ReceiptKeyColumn).ToString)
+                ThisTypeThisReceipt = GetDistinctRows("I", dtCRData, distinctRcptHeader(ReceiptKeyColumn).ToString)
 
-            Dim ItemDatarow As DataRow
-            For Each ItemDatarow In ThisTypeThisReceipt.Rows
-                gTranLineNumber += 1
-                WriteDataViaMap(ItemDatarow, dtThistypeMap)
-            Next
-
-            'ThisTypeThisReceipt is the set of rows for ThisType designated for this receipt key
-
-            ' Process the map for this type against the ThisTypeThisReceipt datatable
-
-        Next
-
-        MsgBox("Upload Complete:" & vbCrLf & OpenFileDialog1.FileName, MsgBoxStyle.OkOnly, "Complete")
-        StatusStrip1.Items(0).Text = "Uploaded to Batch " & gImportNum.ToString
-        If chkValidate.Checked Then
-            WriteLog("Batch:" & gImportNum.ToString & "|Begin Validation" & Now().ToString)
-            Dim cdtError As New DataTable()
-            SQLCtl.ExecCmd("Exec SpAacCRPreValidateData @BatchId=" & gImportNum.ToString, gSQLConnection)
-            SQLCtl.ExecQuery("select Severity, TrackingNumber, errorvalue from [_AacCRImpErrorLog] where BatchId=" & gImportNum.ToString & " Order by trackingnumber", gSQLConnection)
-            cdtError = SQLCtl.sqlds.Tables(0)
-            Dim lRow As DataRow
-            For Each lRow In cdtError.Rows
-                WriteLog("Batch:" & gImportNum.ToString & "|TrackingNumber:" & lRow(0) & "|" & lRow(1) & "|" & lRow(2))
-            Next
-            cdtError.Dispose()
-            cdtError = New DataTable()
-            SQLCtl.ExecQuery("select isnull(TrackingNumber,-1), Severity, errorvalue from [_AacCRImpErrorLog] where BatchId=" & gImportNum.ToString & " and severity <> 0 Order by trackingnumber", gSQLConnection)
-            cdtError = SQLCtl.sqlds.Tables(0)
-            If cdtError.Rows.Count <> 0 Then
-                Dim ErrLogName As String = Path.GetDirectoryName(txtCRFile.Text) & "\" & Path.GetFileNameWithoutExtension(txtCRFile.Text) & ".err"
-                Dim gswLogFileErr As New StreamWriter(ErrLogName, True)
-                gswLogFile.AutoFlush = True
-                gswLogFileErr.WriteLine("TimeStamp|BatchID|TrackingNum|Severity|Error")
-                For Each lRow In cdtError.Rows
-                    gswLogFileErr.WriteLine(Now.ToString & "|" & "Batch:" & gImportNum.ToString & "|TrackingNumber:" & lRow(0) & "|" & lRow(1) & "|" & lRow(2))
+                Dim ItemDatarow As DataRow
+                For Each ItemDatarow In ThisTypeThisReceipt.Rows
+                    gTranLineNumber += 1
+                    WriteDataViaMap(ItemDatarow, dtThistypeMap)
                 Next
-                gswLogFileErr.Flush()
 
-                MsgBox("Could not import due to validation errors. Please review log:" & vbCrLf & ErrLogName, MsgBoxStyle.OkOnly + MsgBoxStyle.Exclamation, "Validation Errors")
-            Else
-                ' Call procedure to create Expert sessions (_spaac_importcr)
-                SQLCtl.ExecCmd("Exec _spaac_ImportCR @NoCommit = 0, @BatchId=" & gImportNum.ToString, gSQLConnection)
-                cdtError.Dispose()
-                cdtError = New DataTable()
-                SQLCtl.ExecQuery("select max(_Session) from _aac_CR_load where BatchId=" & gImportNum.ToString, gSQLConnection)
+                'ThisTypeThisReceipt is the set of rows for ThisType designated for this receipt key
+
+                ' Process the map for this type against the ThisTypeThisReceipt datatable
+
+            Next
+
+            ' ------------------------------------------------------------
+            ' UPLOAD COMPLETE 
+            ' ------------------------------------------------------------
+            MsgBox("Upload Complete:" & vbCrLf & OpenFileDialog1.FileName, MsgBoxStyle.OkOnly, "Complete")
+            StatusText.Text = "Uploaded to Batch " & gImportNum.ToString
+            ' ------------------------------------------------------------
+            ' IF VALIDATE IS CHECKED, CALL THE VALIDATION STORED PROCEDURE
+            ' ------------------------------------------------------------
+            If chkValidate.Checked Then
+                WriteLog("Batch:" & gImportNum.ToString & "|Begin Validation" & Now().ToString)
+                Dim cdtError As New DataTable()
+                ' Validation Routine
+                SQLCtl.ExecCmd("Exec SpAacCRPreValidateData @BatchId=" & gImportNum.ToString, gSQLConnection)
+                ' Results of Validation
+                SQLCtl.ExecQuery("select Severity, TrackingNumber, errorvalue from [_AacCRImpErrorLog] where BatchId=" & gImportNum.ToString & " Order by trackingnumber", gSQLConnection)
                 cdtError = SQLCtl.sqlds.Tables(0)
-                StatusStrip1.Items(0).Text &= "; Created Session " & cdtError.Rows(0)(0).ToString
+                Dim lRow As DataRow
+                For Each lRow In cdtError.Rows
+                    WriteLog("Batch:" & gImportNum.ToString & "|TrackingNumber:" & lRow(0) & "|" & lRow(1) & "|" & lRow(2))
+                Next
+                cdtError.Dispose()
+
+                ' Results with severity > 0 (Errors)
+                cdtError = New DataTable()
+                SQLCtl.ExecQuery("select isnull(TrackingNumber,-1), Severity, errorvalue from [_AacCRImpErrorLog] where BatchId=" & gImportNum.ToString & " and severity <> 0 Order by trackingnumber", gSQLConnection)
+                cdtError = SQLCtl.sqlds.Tables(0)
+                If cdtError.Rows.Count <> 0 Then  ' Errors will prevent upload
+                    Dim ErrLogName As String = Path.GetDirectoryName(txtCRFile.Text) & "\" & Path.GetFileNameWithoutExtension(txtCRFile.Text) & ".err"
+                    Dim gswLogFileErr As New StreamWriter(ErrLogName, True)
+                    gswLogFile.AutoFlush = True
+                    gswLogFileErr.WriteLine("TimeStamp|BatchID|TrackingNum|Severity|Error")
+                    For Each lRow In cdtError.Rows
+                        gswLogFileErr.WriteLine(Now.ToString & "|" & "Batch:" & gImportNum.ToString & "|TrackingNumber:" & lRow(0) & "|" & lRow(1) & "|" & lRow(2))
+                    Next
+                    gswLogFileErr.Flush()
+
+                    MsgBox("Could not import due to validation errors. Please review log:" & vbCrLf & ErrLogName, MsgBoxStyle.OkOnly + MsgBoxStyle.Exclamation, "Validation Errors")
+
+                Else ' No Errors found
+                    '-------------------------------------------------------
+                    ' IF NO ERRORS, CALL UPLOAD ROUTINE TO CREATE CR SESSION
+                    '-------------------------------------------------------
+                    SQLCtl.ExecCmd("Exec _spaac_ImportCR @NoCommit = 0, @BatchId=" & gImportNum.ToString, gSQLConnection)
+                    cdtError.Dispose()
+                    cdtError = New DataTable()
+                    ' Get session created to report back 
+                    SQLCtl.ExecQuery("select max(_Session) from _aac_CR_load where BatchId=" & gImportNum.ToString, gSQLConnection)
+                    cdtError = SQLCtl.sqlds.Tables(0)
+                    StatusText.Text &= "; Created Session " & cdtError.Rows(0)(0).ToString
+                End If
+                cdtError.Dispose()
             End If
-            cdtError.Dispose()
-        End If
+        Catch ex As Exception
+            MsgBox(ex.Message, MsgBoxStyle.OkOnly, "Unhandled Exception in btnUpload")
+        End Try
     End Sub
 
     Private Sub btnEditMap_Click(sender As Object, e As EventArgs) Handles btnEditMap.Click
@@ -578,7 +598,8 @@ Public Class UploadCRFile
             gswLogFile.WriteLine(Now.ToString & "|" & pString)
             gswLogFile.Flush()
         End If
-        StatusStrip1.Items(0).Text = pString
+
+        ActivityText.Text = pString
     End Sub
 
     Private Sub ProgramAbend()
@@ -591,4 +612,4 @@ Public Class UploadCRFile
         End
     End Sub
 
-    Class
+End Class
