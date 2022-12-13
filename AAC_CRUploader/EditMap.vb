@@ -75,12 +75,12 @@ Public Class frmEditMap
 
             ldaMap.Fill(ldsMap)
             ' If source file was identified on previous screen, load columns into AvailableFields list
-            ' gCRDataFile is a DataSet object for the selected file
+            ' gdsSelectedCRSourceFile is a DataSet object for the selected file
             With lbAvailableFields
-                gdtAvailableColumns = UploadCRFile.gCRDataFile.Tables(0)
+                gdtAvailableColumns = UploadCRFile.gdsSelectedCRSourceFile.Tables(0)
                 .Items.Clear()
                 If UploadCRFile.txtCRFile.Text <> "" Then
-                    For Each col In UploadCRFile.gCRDataFile.Tables(0).Columns
+                    For Each col In UploadCRFile.gdsSelectedCRSourceFile.Tables(0).Columns
                         .Items.Add(col.ToString)
                     Next
                 Else
@@ -250,6 +250,14 @@ Public Class frmEditMap
             btnAddPair.Enabled = False
         End If
     End Sub
+    Private Sub lbTargetColumns_DoubleClick(sender As Object, e As EventArgs) Handles lbTargetColumns.DoubleClick
+        Debug.Print(lbAvailableFields.SelectedItem)
+        If dbMap.SelectedCells.Count = 1 AndAlso dbMap.SelectedCells(0).ColumnIndex = 3 Then
+            dbMap.SelectedCells(0).Value = lbTargetColumns.SelectedItem
+
+
+        End If
+    End Sub
 
     Private Sub btnAddPair_Click(sender As Object, e As EventArgs) Handles btnAddPair.Click
         Dim NewRow As DataRow
@@ -362,7 +370,7 @@ Public Class frmEditMap
         For Each row As DataRow In drMapSource
             ColumnFound = False
             Debug.Print(row("SourceColumnLabel"))
-            For Each col In UploadCRFile.gCRDataFile.Tables(0).Columns
+            For Each col In UploadCRFile.gdsSelectedCRSourceFile.Tables(0).Columns
                 Debug.Print(col.ToString & ":" & row("SourceColumnLabel"))
                 If col.ToString.ToUpper = row("SourceColumnLabel").toupper Then
                     ColumnFound = True
@@ -410,4 +418,6 @@ Public Class frmEditMap
         End If
         MsgBox(MapIssuesText, vbOKOnly, "Mapping Issues")
     End Sub
+
+
 End Class
