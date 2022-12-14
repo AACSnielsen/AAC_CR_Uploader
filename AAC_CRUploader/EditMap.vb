@@ -414,10 +414,58 @@ Public Class frmEditMap
         Next
 
         If MapIssuesText = "" Then
-            MapIssuesText = "None Identified"
+            MapIssuesText = "No Issues Identified"
         End If
         MsgBox(MapIssuesText, vbOKOnly, "Mapping Issues")
     End Sub
 
+    Private Sub btnExportmap_Click(sender As Object, e As EventArgs) Handles btnExportmap.Click
+        Dim ExportFileName As String
+        Dim ExportStreamWriter As StreamWriter
+        ExportFileName = Path.GetDirectoryName(UploadCRFile.OpenFileDialog1.FileName) & "\" & cboMap.SelectedValue & ".map"
+        If File.Exists(ExportFileName) Then
+            Dim mans As MsgBoxResult
+            mans = MsgBox("Map file " & ExportFileName & " exists.  Do you want to overwrite it?", vbYesNoCancel, "Export Map")
+            If mans = vbYes Then
+                File.Delete(ExportFileName)
+            Else
+                Exit Sub
+            End If
+        End If
+        ExportStreamWriter = New StreamWriter(ExportFileName, True)
+        Dim lGetMapJsonCmd As String = "select * from _AAC_CRMAPz 
+                                        Join _AAC_CRMAP  on _AAC_CRMAP.MapCode = _aac_crmapz.mapcode 
+                                        where _AAC_CRMAPZ.mapcode = '" & cboMap.SelectedValue & "'  for json auto"
+        Debug.Print(lGetMapJsonCmd.Length)
+        SQLCtl.ExecQuery(lGetMapJsonCmd, gSQLConnection)
+        Dim lRow As DataRow
+        For Each lRow In SQLCtl.sqlds.Tables(0).Rows
+            ExportStreamWriter.Write(lRow(0).ToString)
+        Next
+        ExportStreamWriter.Flush()
+        ExportStreamWriter.Close()
+        ExportStreamWriter.Dispose()
+    End Sub
 
+    Private Sub btnImportMap_Click(sender As Object, e As EventArgs) Handles btnImportMap.Click
+        With OpenFileDialog1
+            .InitialDirectory = Path.GetDirectoryName(UploadCRFile.OpenFileDialog1.FileName)
+            .Filter = "CR Import Maps|*.map"
+            .ShowDialog()
+
+            If .FileName = "" Then
+                Exit Sub
+            End If
+        End With
+        Dim ImportFileName As String = OpenFileDialog1.FileName
+        Dim ImportStreamReader As StreamReader
+        Dim JSON As String
+        ImportStreamReader = New StreamReader(ImportFileName)
+        JSON = ImportStreamReader.ReadLine
+        ImportStreamReader.Close()
+        ImportStreamReader.Dispose()
+
+        Dim ImportCmd As String = "exec _spaac_CR_Import_Map @JSON = '" & JSON & "'"
+        SQLCtl.ExecCmd(ImportCmd, gSQLConnection)
+    End Sub
 End Class

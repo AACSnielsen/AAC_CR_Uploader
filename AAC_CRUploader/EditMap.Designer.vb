@@ -51,6 +51,9 @@ Partial Class frmEditMap
         Me.CBOSheetName = New System.Windows.Forms.ComboBox()
         Me.Label10 = New System.Windows.Forms.Label()
         Me.bntValidate = New System.Windows.Forms.Button()
+        Me.btnExportmap = New System.Windows.Forms.Button()
+        Me.btnImportMap = New System.Windows.Forms.Button()
+        Me.OpenFileDialog1 = New System.Windows.Forms.OpenFileDialog()
         CType(Me.dbMap, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.GroupBox1.SuspendLayout()
         Me.SuspendLayout()
@@ -335,11 +338,35 @@ Partial Class frmEditMap
         Me.bntValidate.Text = "Validate Map"
         Me.bntValidate.UseVisualStyleBackColor = True
         '
+        'btnExportmap
+        '
+        Me.btnExportmap.Location = New System.Drawing.Point(516, 110)
+        Me.btnExportmap.Name = "btnExportmap"
+        Me.btnExportmap.Size = New System.Drawing.Size(75, 23)
+        Me.btnExportmap.TabIndex = 31
+        Me.btnExportmap.Text = "Export Map"
+        Me.btnExportmap.UseVisualStyleBackColor = True
+        '
+        'btnImportMap
+        '
+        Me.btnImportMap.Location = New System.Drawing.Point(710, 110)
+        Me.btnImportMap.Name = "btnImportMap"
+        Me.btnImportMap.Size = New System.Drawing.Size(75, 23)
+        Me.btnImportMap.TabIndex = 32
+        Me.btnImportMap.Text = "Import Map"
+        Me.btnImportMap.UseVisualStyleBackColor = True
+        '
+        'OpenFileDialog1
+        '
+        Me.OpenFileDialog1.FileName = "OpenFileDialog1"
+        '
         'frmEditMap
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(803, 639)
+        Me.Controls.Add(Me.btnImportMap)
+        Me.Controls.Add(Me.btnExportmap)
         Me.Controls.Add(Me.bntValidate)
         Me.Controls.Add(Me.CBOSheetName)
         Me.Controls.Add(Me.Label10)
@@ -403,4 +430,7 @@ Partial Class frmEditMap
     Friend WithEvents CBOSheetName As ComboBox
     Friend WithEvents Label10 As Label
     Friend WithEvents bntValidate As Button
+    Friend WithEvents btnExportmap As Button
+    Friend WithEvents btnImportMap As Button
+    Friend WithEvents OpenFileDialog1 As OpenFileDialog
 End Class

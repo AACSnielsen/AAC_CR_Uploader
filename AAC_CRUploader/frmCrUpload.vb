@@ -82,7 +82,8 @@ Public Class UploadCRFile
             gSQLConnection.Open()
 
             ' Check that user is authorized:
-            Dim lCmdText As String = "exec security.SetContextByName '" & Environment.UserName & "'; execute [SECURITY].[HasResourceRight] @nodepath = 'AccountsReceivable.Custom.CRUploader', @RightName = 'Execute', @Hierarchytypeid = 3"
+            Dim lCmdText As String = "exec security.SetContextByName '" & Environment.UserName &
+                "'; execute [SECURITY].[HasResourceRight] @nodepath = 'AccountsReceivable.Custom.CRUploader', @RightName = 'Execute', @Hierarchytypeid = 3"
             SQLCtl.ExecQuery(lCmdText, gSQLConnection)
             If SQLCtl.sqlds.Tables(0).Rows.Count = 0 Then '(0)("PermissionType") <> 1 Then
                 MsgBox("User " & Environment.UserName & " not authorized for resource <AccountsReceivable.Custom.CRUploader>", MsgBoxStyle.Critical + MsgBoxStyle.OkOnly, "No valid connection information")
@@ -189,7 +190,11 @@ Public Class UploadCRFile
             If fileobject.Exists Then
                 ' If ACE driver does not exist, use JET driver 
                 'If Microsoft.Win32.Registry.ClassesRoot.OpenSubKey("Microsoft.ACE.OLEDB.16.0\CLSID") Is Nothing Then
-                CnStr = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" & Path.GetDirectoryName(txtCRFile.Text) & ";Extended Properties=""text;HDR=Yes;FMT=Delimited"";"
+                '                CnStr = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" & Path.GetDirectoryName(txtCRFile.Text) &
+                '                   ";Extended Properties=""text;HDR=Yes;FMT=Delimited(|)"";"
+                CnStr = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=""" & Path.GetDirectoryName(txtCRFile.Text) &
+                    """;Extended Properties='text;HDR=Yes;FMT=Delimited;';"
+                Debug.Print(CnStr)
                 '           Else
                 '              CnStr = "Provider=Microsoft.ACE.OLEDB.16.0;Data Source=" & Path.GetDirectoryName(txtCRFile.Text) & ";Extended Properties=""text;HDR=Yes;FMT=Delimited"";"
                 '               End If
