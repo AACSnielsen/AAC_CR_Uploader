@@ -85,10 +85,10 @@ Public Class UploadCRFile
             Dim lCmdText As String = "exec security.SetContextByName '" & Environment.UserName &
                 "'; execute [SECURITY].[HasResourceRight] @nodepath = 'AccountsReceivable.Custom.CRUploader', @RightName = 'Execute', @Hierarchytypeid = 3"
             SQLCtl.ExecQuery(lCmdText, gSQLConnection)
-            If SQLCtl.sqlds.Tables(0).Rows.Count = 0 Then '(0)("PermissionType") <> 1 Then
-                MsgBox("User " & Environment.UserName & " not authorized for resource <AccountsReceivable.Custom.CRUploader>", MsgBoxStyle.Critical + MsgBoxStyle.OkOnly, "No valid connection information")
-                End
-            End If
+            'If SQLCtl.sqlds.Tables(0).Rows.Count = 0 Then '(0)("PermissionType") <> 1 Then
+            '    MsgBox("User " & Environment.UserName & " not authorized for resource <AccountsReceivable.Custom.CRUploader>", MsgBoxStyle.Critical + MsgBoxStyle.OkOnly, "No valid connection information")
+            '    End
+            'End If
 
             lCmdText = "Select Mapcode, MapDesc, FileMask, TargetTable, FileType from _aac_CRMAPZ where inactive <> 'Y'"
             SQLCtl.ExecQuery("Select Mapcode, MapDesc, FileMask, TargetTable, FileType from _aac_CRMAPZ where inactive <> 'Y'", gSQLConnection)
@@ -162,14 +162,13 @@ Public Class UploadCRFile
                 btnOpen.Enabled = True
                 txtCRFile.Enabled = True
 
-            Catch err As Exception
+            Catch ex As Exception
                 Dim mresp As MsgBoxResult
-                mresp = MsgBox("Unexpected Error:" & err.Message, MsgBoxStyle.Critical + MsgBoxStyle.OkCancel + MsgBoxStyle.DefaultButton2, "Error in cboMap.SelectedIndexChanged")
+                mresp = MsgBox("Unexpected Error:" & ex.Message, MsgBoxStyle.Critical + MsgBoxStyle.OkCancel + MsgBoxStyle.DefaultButton2, "Error in cboMap.SelectedIndexChanged")
+                WriteLog("Error in cboMap_SelectedIndexChanged" & ex.Message & ex.StackTrace)
                 If mresp = MsgBoxResult.Cancel Then
                     ProgramAbend()
-
                 End If
-                Debug.Print(e.ToString)
             End Try
 
         End If
@@ -190,14 +189,16 @@ Public Class UploadCRFile
             If fileobject.Exists Then
                 ' If ACE driver does not exist, use JET driver 
                 'If Microsoft.Win32.Registry.ClassesRoot.OpenSubKey("Microsoft.ACE.OLEDB.16.0\CLSID") Is Nothing Then
-                '                CnStr = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" & Path.GetDirectoryName(txtCRFile.Text) &
+                'CnStr = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" & Path.GetDirectoryName(txtCRFile.Text) &
                 '                   ";Extended Properties=""text;HDR=Yes;FMT=Delimited(|)"";"
                 CnStr = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=""" & Path.GetDirectoryName(txtCRFile.Text) &
                     """;Extended Properties='text;HDR=Yes;FMT=Delimited;';"
-                Debug.Print(CnStr)
+
                 '           Else
-                '              CnStr = "Provider=Microsoft.ACE.OLEDB.16.0;Data Source=" & Path.GetDirectoryName(txtCRFile.Text) & ";Extended Properties=""text;HDR=Yes;FMT=Delimited"";"
+                'CnStr = "Provider=Microsoft.ACE.OLEDB.12.0;Data Source=" & Path.GetDirectoryName(txtCRFile.Text) &
+                '              ";Extended Properties=""text;HDR=Yes;FMT=Delimited(|)"";"
                 '               End If
+                Debug.Print(CnStr)
                 gdsSelectedCRSourceFile = New DataSet
 
                 If SourceFileType = "CSV" Then
@@ -338,6 +339,7 @@ Public Class UploadCRFile
         Catch ex As Exception
             Dim mresponse As MsgBoxResult
             mresponse = MsgBox(ex.Message, MsgBoxStyle.Critical + MsgBoxStyle.OkOnly, "Error in GetDistinctRows")
+            WriteLog("Error in GetDistinctRows" & ex.Message & ex.StackTrace)
             GetDistinctRows = pDataSource.Clone 'Return empty copy
         End Try
         If chkLogDebug.Checked Then DisplayDT(GetDistinctRows, 10)
@@ -468,6 +470,7 @@ Public Class UploadCRFile
             ' ------------------------------------------------------------
             MsgBox("Upload Complete:" & vbCrLf & OpenFileDialog1.FileName, MsgBoxStyle.OkOnly, "Complete")
             StatusText.Text = "Uploaded to Batch " & gImportNum.ToString
+            ActivityText.Text = "Done"
             ' ------------------------------------------------------------
             ' IF VALIDATE IS CHECKED, CALL THE VALIDATION STORED PROCEDURE
             ' ------------------------------------------------------------

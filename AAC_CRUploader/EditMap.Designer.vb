@@ -174,6 +174,7 @@ Partial Class frmEditMap
         '
         Me.txtTargetTable.Location = New System.Drawing.Point(120, 121)
         Me.txtTargetTable.Name = "txtTargetTable"
+        Me.txtTargetTable.ReadOnly = True
         Me.txtTargetTable.Size = New System.Drawing.Size(368, 20)
         Me.txtTargetTable.TabIndex = 15
         '
