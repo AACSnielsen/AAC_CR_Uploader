@@ -22,6 +22,8 @@ Partial Class frmEditMap
     'Do not modify it using the code editor.
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
+        Me.components = New System.ComponentModel.Container()
+        Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(frmEditMap))
         Me.dbMap = New System.Windows.Forms.DataGridView()
         Me.cboMap = New System.Windows.Forms.ComboBox()
         Me.Label1 = New System.Windows.Forms.Label()
@@ -54,8 +56,11 @@ Partial Class frmEditMap
         Me.btnExportmap = New System.Windows.Forms.Button()
         Me.btnImportMap = New System.Windows.Forms.Button()
         Me.OpenFileDialog1 = New System.Windows.Forms.OpenFileDialog()
+        Me.ToolTip1 = New System.Windows.Forms.ToolTip(Me.components)
+        Me.PictureBox1 = New System.Windows.Forms.PictureBox()
         CType(Me.dbMap, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.GroupBox1.SuspendLayout()
+        CType(Me.PictureBox1, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SuspendLayout()
         '
         'dbMap
@@ -361,11 +366,29 @@ Partial Class frmEditMap
         '
         Me.OpenFileDialog1.FileName = "OpenFileDialog1"
         '
+        'ToolTip1
+        '
+        Me.ToolTip1.AutoPopDelay = 10000
+        Me.ToolTip1.InitialDelay = 500
+        Me.ToolTip1.ReshowDelay = 100
+        '
+        'PictureBox1
+        '
+        Me.PictureBox1.Image = Global.AAC_CRUploader.My.Resources.Resources.InfoTipInline_11_11
+        Me.PictureBox1.Location = New System.Drawing.Point(476, 156)
+        Me.PictureBox1.Name = "PictureBox1"
+        Me.PictureBox1.Size = New System.Drawing.Size(13, 14)
+        Me.PictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage
+        Me.PictureBox1.TabIndex = 34
+        Me.PictureBox1.TabStop = False
+        Me.ToolTip1.SetToolTip(Me.PictureBox1, resources.GetString("PictureBox1.ToolTip"))
+        '
         'frmEditMap
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(803, 639)
+        Me.Controls.Add(Me.PictureBox1)
         Me.Controls.Add(Me.btnImportMap)
         Me.Controls.Add(Me.btnExportmap)
         Me.Controls.Add(Me.bntValidate)
@@ -397,6 +420,7 @@ Partial Class frmEditMap
         CType(Me.dbMap, System.ComponentModel.ISupportInitialize).EndInit()
         Me.GroupBox1.ResumeLayout(False)
         Me.GroupBox1.PerformLayout()
+        CType(Me.PictureBox1, System.ComponentModel.ISupportInitialize).EndInit()
         Me.ResumeLayout(False)
         Me.PerformLayout()
 
@@ -434,4 +458,6 @@ Partial Class frmEditMap
     Friend WithEvents btnExportmap As Button
     Friend WithEvents btnImportMap As Button
     Friend WithEvents OpenFileDialog1 As OpenFileDialog
+    Friend WithEvents ToolTip1 As ToolTip
+    Friend WithEvents PictureBox1 As PictureBox
 End Class

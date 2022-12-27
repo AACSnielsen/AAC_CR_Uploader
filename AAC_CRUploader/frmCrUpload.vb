@@ -256,7 +256,7 @@ Public Class UploadCRFile
         Next ColIX
         'txtPreamble = txtPreamble.Substring(0, txtPreamble.Length - 2) & ")" & vbCrLf
         txtPreamble &= "_ImportStatus)" & vbCrLf
-
+        Dim CMSplit() As String
         txtValues = "Values ("
         For colix = 0 To pMapTable.Rows.Count - 1
             Select Case pMapTable.Rows(colix)("DataType")
@@ -282,6 +282,22 @@ Public Class UploadCRFile
                     End Select
                 Case "L" ' get value based on column heading label
                     txtValues &= "'" & pDataRow(pMapTable.Rows(colix)("SourceColumnLabel")) & "', "
+                Case "C" ' get value based on column heading label
+                    If Not IsDBNull(pDataRow(pMapTable.Rows(colix)("SourceColumnLabel"))) Then
+                        CMSplit = pDataRow(pMapTable.Rows(colix)("SourceColumnLabel")).split(".")
+                        txtValues &= "'" & CMSplit(0) & "', "
+                    Else
+                        txtValues &= "'', "
+                    End If
+
+                Case "M" ' get value based on column heading label
+                    If Not IsDBNull(pDataRow(pMapTable.Rows(colix)("SourceColumnLabel"))) Then
+                        CMSplit = pDataRow(pMapTable.Rows(colix)("SourceColumnLabel")).split(".")
+                        txtValues &= "'" & CMSplit(1) & "', "
+                    Else
+                        txtValues &= "'', "
+                    End If
+
                 Case Else
                     txtValues &= "'InvalidMap', "
             End Select
@@ -310,7 +326,7 @@ Public Class UploadCRFile
 
 
             ' Get distinct values of all mapped columns for thistype 
-            RTypeColumnFilter = "ApplicationType = '" & ThisType & "' and DataType = 'L'"
+            RTypeColumnFilter = "ApplicationType = '" & ThisType & "' and DataType in ('L','C','M')"
             If chkLogDebug.Checked Then WriteLog("GetDistinctRows (SourceColumns) for " & RTypeColumnFilter)
             Dim SourceColumnsThisType As DataRow() = gdtMap.Select(RTypeColumnFilter)
             Dim dtThisType As DataTable = gdtMap.Clone()

@@ -101,6 +101,8 @@ Public Class frmEditMap
             DataTypeCol.Items.Add("K")
             DataTypeCol.Items.Add("L")
             DataTypeCol.Items.Add("R")
+            DataTypeCol.Items.Add("C")
+            DataTypeCol.Items.Add("M")
             DataTypeCol.Items.Add(" ")
             Dim TextCol0, TextCol1, TextCol2, TextCol3, TextCol4 As New DataGridViewTextBoxColumn
 
@@ -129,7 +131,7 @@ Public Class frmEditMap
                 .Columns(2).HeaderText = "Application Type"
                 .Columns(3).HeaderText = "Target Column"
                 .Columns(4).HeaderText = "Source"
-                .Columns(5).HeaderText = "'L'abel" + vbCrLf + "'K'onstant" + vbCrLf + "'R'eplacement"
+                .Columns(5).HeaderText = "Mapping Action"
                 .Columns(0).ReadOnly = True
                 .Columns(3).ReadOnly = True
                 .Columns(0).DefaultCellStyle.BackColor = Color.Silver
@@ -366,7 +368,7 @@ Public Class frmEditMap
 
         Dim ColumnFound As Boolean = False
 
-        Dim drMapSource() As DataRow = gdtMap.Select("DataType = 'R' or DataType = 'L'")
+        Dim drMapSource() As DataRow = gdtMap.Select("DataType in ('R','L','C','M')")
         For Each row As DataRow In drMapSource
             ColumnFound = False
             Debug.Print(row("SourceColumnLabel"))
@@ -393,8 +395,14 @@ Public Class frmEditMap
 
             Next
             If Not ColumnFound Then
-                MapIssuesText &= "Source column:" + row("SourceColumnLabel").ToString + " not found in file" + Environment.NewLine
+                MapIssuesText &= "Source column:" + row("SourceColumnLabel").ToString + " not found in file" & " (Type:" & row("ApplicationType").ToString & ")" & Environment.NewLine
             End If
+
+            If row("SourceColumnLabel").ToString = "" And row("TargetColumn").ToString <> "" Then
+                MapIssuesText &= "No Source column for target" & row("TargetColumn").ToString & " (Type:" & row("ApplicationType").ToString & ")" & Environment.NewLine
+            End If
+
+
         Next
 
         Dim drMapTarget() As DataRow = gdtMap.Select("TargetColumn <> ''")
@@ -410,13 +418,32 @@ Public Class frmEditMap
             Next
             If Not ColumnFound Then
                 MapIssuesText &= "Target column:" + row("TargetColumn").ToString + " not found SQL Table" + Environment.NewLine
+
             End If
         Next
+
+        drMapSource = gdtMap.Select("DataType in ('')")
+        For Each row As DataRow In drMapSource
+            MapIssuesText &= "Removed unused mapping RowTarget to: " + row("TargetColumn").ToString & Environment.NewLine
+            Dim lCmd As String = ""
+            lCmd = "Delete from _AAC_CRMAP where mapcode = '" + cboMap.SelectedValue +
+                                 "' and targetcolumn = '" + row("TargetColumn").ToString + "' and applicationtype = '" +
+                                 row("ApplicationType").ToString + "'"
+            Debug.Print(lCmd)
+            SQLCtl.ExecCmd(lCmd, gSQLConnection)
+            btnSave.Enabled = True
+        Next row
+
 
         If MapIssuesText = "" Then
             MapIssuesText = "No Issues Identified"
         End If
         MsgBox(MapIssuesText, vbOKOnly, "Mapping Issues")
+        If btnSave.Enabled Then
+            btnSave_Click(sender, e)
+            cboMap_SelectedIndexChanged(sender, e)
+
+        End If
     End Sub
 
     Private Sub btnExportmap_Click(sender As Object, e As EventArgs) Handles btnExportmap.Click
@@ -468,4 +495,6 @@ Public Class frmEditMap
         Dim ImportCmd As String = "exec _spaac_CR_Import_Map @JSON = '" & JSON & "'"
         SQLCtl.ExecCmd(ImportCmd, gSQLConnection)
     End Sub
+
+
 End Class
