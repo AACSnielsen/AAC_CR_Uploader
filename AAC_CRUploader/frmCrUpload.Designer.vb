@@ -208,6 +208,7 @@ Partial Class UploadCRFile
         'btnEditMap
         '
         Me.btnEditMap.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
+        Me.btnEditMap.Enabled = False
         Me.btnEditMap.Location = New System.Drawing.Point(238, 439)
         Me.btnEditMap.Name = "btnEditMap"
         Me.btnEditMap.Size = New System.Drawing.Size(113, 23)

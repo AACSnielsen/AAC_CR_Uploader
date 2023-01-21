@@ -131,4 +131,10 @@ R - Use replacement variable (%xxx%)
 C - Extract client from Client.Matter string
 M - Extract Matter from Client.Matter string</value>
   </data>
+  <data name="txtUseSchema.ToolTip" xml:space="preserve">
+    <value>Name of file descriptor within the schema.ini file.
+schema.ini file in the source directory must contain a descriptor matching this name that provides the layout and delimiter for the input file.
+Not needed for comma delimited files that have a header row.
+</value>
+  </data>
 </root>

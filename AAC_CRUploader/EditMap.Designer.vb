@@ -51,13 +51,17 @@ Partial Class frmEditMap
         Me.Label9 = New System.Windows.Forms.Label()
         Me.cboFileType = New System.Windows.Forms.ComboBox()
         Me.CBOSheetName = New System.Windows.Forms.ComboBox()
-        Me.Label10 = New System.Windows.Forms.Label()
+        Me.lblSheetName = New System.Windows.Forms.Label()
         Me.bntValidate = New System.Windows.Forms.Button()
         Me.btnExportmap = New System.Windows.Forms.Button()
         Me.btnImportMap = New System.Windows.Forms.Button()
         Me.OpenFileDialog1 = New System.Windows.Forms.OpenFileDialog()
         Me.ToolTip1 = New System.Windows.Forms.ToolTip(Me.components)
         Me.PictureBox1 = New System.Windows.Forms.PictureBox()
+        Me.txtUseSchema = New System.Windows.Forms.TextBox()
+        Me.lblUseSchema = New System.Windows.Forms.Label()
+        Me.Label10 = New System.Windows.Forms.Label()
+        Me.txtFirstDataRow = New System.Windows.Forms.TextBox()
         CType(Me.dbMap, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.GroupBox1.SuspendLayout()
         CType(Me.PictureBox1, System.ComponentModel.ISupportInitialize).BeginInit()
@@ -69,11 +73,11 @@ Partial Class frmEditMap
             Or System.Windows.Forms.AnchorStyles.Left) _
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.dbMap.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
-        Me.dbMap.Location = New System.Drawing.Point(12, 172)
+        Me.dbMap.Location = New System.Drawing.Point(12, 199)
         Me.dbMap.MultiSelect = False
         Me.dbMap.Name = "dbMap"
         Me.dbMap.RowHeadersVisible = False
-        Me.dbMap.Size = New System.Drawing.Size(477, 426)
+        Me.dbMap.Size = New System.Drawing.Size(477, 399)
         Me.dbMap.TabIndex = 0
         '
         'cboMap
@@ -126,15 +130,15 @@ Partial Class frmEditMap
         Me.lbAvailableFields.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.lbAvailableFields.FormattingEnabled = True
-        Me.lbAvailableFields.Location = New System.Drawing.Point(646, 172)
+        Me.lbAvailableFields.Location = New System.Drawing.Point(646, 199)
         Me.lbAvailableFields.Name = "lbAvailableFields"
-        Me.lbAvailableFields.Size = New System.Drawing.Size(127, 420)
+        Me.lbAvailableFields.Size = New System.Drawing.Size(127, 394)
         Me.lbAvailableFields.TabIndex = 8
         '
         'Label4
         '
         Me.Label4.AutoSize = True
-        Me.Label4.Location = New System.Drawing.Point(12, 156)
+        Me.Label4.Location = New System.Drawing.Point(12, 183)
         Me.Label4.Name = "Label4"
         Me.Label4.Size = New System.Drawing.Size(53, 13)
         Me.Label4.TabIndex = 9
@@ -145,7 +149,7 @@ Partial Class frmEditMap
         Me.lblSampleFields.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.lblSampleFields.AutoSize = True
-        Me.lblSampleFields.Location = New System.Drawing.Point(644, 156)
+        Me.lblSampleFields.Location = New System.Drawing.Point(643, 183)
         Me.lblSampleFields.Name = "lblSampleFields"
         Me.lblSampleFields.Size = New System.Drawing.Size(99, 13)
         Me.lblSampleFields.TabIndex = 10
@@ -186,7 +190,7 @@ Partial Class frmEditMap
         'Label5
         '
         Me.Label5.AutoSize = True
-        Me.Label5.Location = New System.Drawing.Point(46, 125)
+        Me.Label5.Location = New System.Drawing.Point(37, 124)
         Me.Label5.Name = "Label5"
         Me.Label5.Size = New System.Drawing.Size(68, 13)
         Me.Label5.TabIndex = 14
@@ -197,7 +201,7 @@ Partial Class frmEditMap
         Me.Label6.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.Label6.AutoSize = True
-        Me.Label6.Location = New System.Drawing.Point(502, 156)
+        Me.Label6.Location = New System.Drawing.Point(501, 183)
         Me.Label6.Name = "Label6"
         Me.Label6.Size = New System.Drawing.Size(92, 13)
         Me.Label6.TabIndex = 17
@@ -208,9 +212,9 @@ Partial Class frmEditMap
         Me.lbTargetColumns.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.lbTargetColumns.FormattingEnabled = True
-        Me.lbTargetColumns.Location = New System.Drawing.Point(504, 172)
+        Me.lbTargetColumns.Location = New System.Drawing.Point(504, 199)
         Me.lbTargetColumns.Name = "lbTargetColumns"
-        Me.lbTargetColumns.Size = New System.Drawing.Size(127, 420)
+        Me.lbTargetColumns.Size = New System.Drawing.Size(127, 394)
         Me.lbTargetColumns.TabIndex = 16
         '
         'btnAddPair
@@ -325,14 +329,14 @@ Partial Class frmEditMap
         Me.CBOSheetName.Size = New System.Drawing.Size(368, 21)
         Me.CBOSheetName.TabIndex = 29
         '
-        'Label10
+        'lblSheetName
         '
-        Me.Label10.AutoSize = True
-        Me.Label10.Location = New System.Drawing.Point(48, 84)
-        Me.Label10.Name = "Label10"
-        Me.Label10.Size = New System.Drawing.Size(66, 13)
-        Me.Label10.TabIndex = 28
-        Me.Label10.Text = "Sheet Name"
+        Me.lblSheetName.AutoSize = True
+        Me.lblSheetName.Location = New System.Drawing.Point(48, 84)
+        Me.lblSheetName.Name = "lblSheetName"
+        Me.lblSheetName.Size = New System.Drawing.Size(66, 13)
+        Me.lblSheetName.TabIndex = 28
+        Me.lblSheetName.Text = "Sheet Name"
         '
         'bntValidate
         '
@@ -375,7 +379,7 @@ Partial Class frmEditMap
         'PictureBox1
         '
         Me.PictureBox1.Image = Global.AAC_CRUploader.My.Resources.Resources.InfoTipInline_11_11
-        Me.PictureBox1.Location = New System.Drawing.Point(476, 156)
+        Me.PictureBox1.Location = New System.Drawing.Point(475, 183)
         Me.PictureBox1.Name = "PictureBox1"
         Me.PictureBox1.Size = New System.Drawing.Size(13, 14)
         Me.PictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage
@@ -383,17 +387,56 @@ Partial Class frmEditMap
         Me.PictureBox1.TabStop = False
         Me.ToolTip1.SetToolTip(Me.PictureBox1, resources.GetString("PictureBox1.ToolTip"))
         '
+        'txtUseSchema
+        '
+        Me.txtUseSchema.Location = New System.Drawing.Point(120, 80)
+        Me.txtUseSchema.Name = "txtUseSchema"
+        Me.txtUseSchema.Size = New System.Drawing.Size(368, 20)
+        Me.txtUseSchema.TabIndex = 36
+        Me.ToolTip1.SetToolTip(Me.txtUseSchema, resources.GetString("txtUseSchema.ToolTip"))
+        '
+        'lblUseSchema
+        '
+        Me.lblUseSchema.AutoSize = True
+        Me.lblUseSchema.Location = New System.Drawing.Point(46, 84)
+        Me.lblUseSchema.Name = "lblUseSchema"
+        Me.lblUseSchema.Size = New System.Drawing.Size(68, 13)
+        Me.lblUseSchema.TabIndex = 35
+        Me.lblUseSchema.Text = "Use Schema"
+        '
+        'Label10
+        '
+        Me.Label10.AutoSize = True
+        Me.Label10.Location = New System.Drawing.Point(37, 145)
+        Me.Label10.Name = "Label10"
+        Me.Label10.Size = New System.Drawing.Size(77, 13)
+        Me.Label10.TabIndex = 37
+        Me.Label10.Text = "First Data Row"
+        Me.Label10.Visible = False
+        '
+        'txtFirstDataRow
+        '
+        Me.txtFirstDataRow.Location = New System.Drawing.Point(120, 141)
+        Me.txtFirstDataRow.Name = "txtFirstDataRow"
+        Me.txtFirstDataRow.Size = New System.Drawing.Size(368, 20)
+        Me.txtFirstDataRow.TabIndex = 38
+        Me.txtFirstDataRow.Visible = False
+        '
         'frmEditMap
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(803, 639)
+        Me.Controls.Add(Me.txtFirstDataRow)
+        Me.Controls.Add(Me.Label10)
+        Me.Controls.Add(Me.txtUseSchema)
+        Me.Controls.Add(Me.lblUseSchema)
         Me.Controls.Add(Me.PictureBox1)
         Me.Controls.Add(Me.btnImportMap)
         Me.Controls.Add(Me.btnExportmap)
         Me.Controls.Add(Me.bntValidate)
         Me.Controls.Add(Me.CBOSheetName)
-        Me.Controls.Add(Me.Label10)
+        Me.Controls.Add(Me.lblSheetName)
         Me.Controls.Add(Me.cboFileType)
         Me.Controls.Add(Me.Label9)
         Me.Controls.Add(Me.Button2)
@@ -453,11 +496,15 @@ Partial Class frmEditMap
     Friend WithEvents Label9 As Label
     Friend WithEvents cboFileType As ComboBox
     Friend WithEvents CBOSheetName As ComboBox
-    Friend WithEvents Label10 As Label
+    Friend WithEvents lblSheetName As Label
     Friend WithEvents bntValidate As Button
     Friend WithEvents btnExportmap As Button
     Friend WithEvents btnImportMap As Button
     Friend WithEvents OpenFileDialog1 As OpenFileDialog
     Friend WithEvents ToolTip1 As ToolTip
     Friend WithEvents PictureBox1 As PictureBox
+    Friend WithEvents txtUseSchema As TextBox
+    Friend WithEvents lblUseSchema As Label
+    Friend WithEvents Label10 As Label
+    Friend WithEvents txtFirstDataRow As TextBox
 End Class

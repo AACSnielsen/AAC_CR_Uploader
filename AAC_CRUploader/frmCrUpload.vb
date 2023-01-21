@@ -14,6 +14,10 @@ Public Class UploadCRFile
     Private Protected SourceFileName As String
     Private Protected SourceXLSheetName As String
     Private Protected SourceFileOpenMask As String
+    Private Protected UseSchemaName As String
+    Private Protected FirstDataRow As Long
+
+
 
     Private Protected gdtMap As DataTable
     Private Protected gAutoRun As Boolean = False
@@ -31,6 +35,7 @@ Public Class UploadCRFile
     Private Protected gSourceDataPath As String = ""
     Private Protected gImportLogName As String = ""
     Private Protected gswLogFile As StreamWriter
+    Private Protected gCRValidationProc As String = "SpAacCRPreValidateData"
 
 
     Private Sub UploadCRFile_Load(sender As Object, e As EventArgs) Handles MyBase.Load
@@ -82,19 +87,35 @@ Public Class UploadCRFile
             gSQLConnection.Open()
 
             ' Check that user is authorized:
-            Dim lCmdText As String = "exec security.SetContextByName '" & Environment.UserName &
+#If Not DEBUG Then
+                Dim lCmdText As String = "exec security.SetContextByName '" & Environment.UserName &
                 "'; execute [SECURITY].[HasResourceRight] @nodepath = 'AccountsReceivable.Custom.CRUploader', @RightName = 'Execute', @Hierarchytypeid = 3"
-            SQLCtl.ExecQuery(lCmdText, gSQLConnection)
-            'If SQLCtl.sqlds.Tables(0).Rows.Count = 0 Then '(0)("PermissionType") <> 1 Then
-            '    MsgBox("User " & Environment.UserName & " not authorized for resource <AccountsReceivable.Custom.CRUploader>", MsgBoxStyle.Critical + MsgBoxStyle.OkOnly, "No valid connection information")
-            '    End
-            'End If
+                SQLCtl.ExecQuery(lCmdText, gSQLConnection)
+                If SQLCtl.sqlds.Tables(0).Rows.Count <> 0 Then 'Resource is defined - Check access (Else continue)
+                    If SQLCtl.sqlds.Tables(0).Rows(0)(0) <> 1 Then '(0)("PermissionType") <> 1 Then
+                        MsgBox("User " & Environment.UserName & " not authorized for resource <AccountsReceivable.Custom.CRUploader>", MsgBoxStyle.Critical + MsgBoxStyle.OkOnly, "No valid connection information")
+                        End
+                    End If
+                End If
+                If SQLCtl.sqlds.Tables(0).Rows.Count = 0 Then 'Resource not granted
+                    MsgBox("User " & Environment.UserName & " not authorized for resource <AccountsReceivable.Custom.CRUploader>", MsgBoxStyle.Critical + MsgBoxStyle.OkOnly, "No valid connection information")
+                    End
+                End If
+#End If 'Debug
 
-            lCmdText = "Select Mapcode, MapDesc, FileMask, TargetTable, FileType from _aac_CRMAPZ where inactive <> 'Y'"
-            SQLCtl.ExecQuery("Select Mapcode, MapDesc, FileMask, TargetTable, FileType from _aac_CRMAPZ where inactive <> 'Y'", gSQLConnection)
+
+            'Check config for override CR Validation Procedure.  IF not found will use defaule defiend in globals
+            lCmdText = "exec  [Configuration].[GetSingleConfigurationValue] @path = 'Preference.Applications.FirmCustom.CRUploader' ,@name = 'CRValidationProcedure'"
+            SQLCtl.ExecQuery(lCmdText, gSQLConnection)
+            If SQLCtl.sqlds.Tables(0).Rows.Count <> 0 Then 'Resource not defined - do not overrid
+                gCRValidationProc = SQLCtl.sqlds.Tables(0).Rows(0)("Content")
+            End If
+
+            lCmdText = "Select Mapcode, MapDesc + ' (' + mapcode + ')' as MapDesc, FileMask, TargetTable, FileType from _aac_CRMAPZ where inactive <> 'Y'"
+            SQLCtl.ExecQuery(lCmdText, gSQLConnection)
             gdtMaps = SQLCtl.sqlds.Tables(0)
             With cboMap
-                .DataSource = SQLCtl.sqlds.Tables(0)
+                .DataSource = gdtMaps 'SQLCtl.sqlds.Tables(0)
                 .DisplayMember = "MapDesc"
                 .ValueMember = "MapCode"
             End With
@@ -118,7 +139,7 @@ Public Class UploadCRFile
         Catch ex As Exception
             MsgBox("Unhandled error:" & ex.Message & vbCrLf, vbOK, "Form Load")
         End Try
-        'If cboMap.SelectedText <> "" Then cboMap_SelectedIndexChanged(sender, e)
+        If cboMap.SelectedValue <> "" Then cboMap_SelectedIndexChanged(sender, e)
         'If txtCRFile.Text <> "" Then txtCRFile_TextChanged(sender, e)
     End Sub
 
@@ -129,18 +150,21 @@ Public Class UploadCRFile
         '                           MAP SELECTED    MAP SELECTED    MAP SELECTED    MAP SELECTED    MAP SELECTED        '
         '================================================================================================================
         ' cboMap has all defined mappings.  When selected, load the details for that mapping to the gdtMap Data table
-        CurrSelectedMap = cboMap.SelectedValue.ToString
-        If Not FormLoad And CurrSelectedMap <> "" Then
-            Try
+        'CurrSelectedMap = cboMap.SelectedValue.ToString
 
+        If Not FormLoad And cboMap.SelectedValue.ToString <> "" Then
+            Try
+                CurrSelectedMap = cboMap.SelectedValue.ToString
                 Dim lCmdText As String = ""
                 'Ensure SQL sequenece exists
                 lCmdText = "if not exists (select * from sys.sequences where schema_name(schema_id) = 'sequence' and name = 'import_num') " &
                         "CREATE SEQUENCE [Sequence].[Import_Num]  START WITH 1"
                 SQLCtl.ExecQuery(lCmdText, gSQLConnection)
 
-                lCmdText = "Select Mapcode, ApplicationType, SourceColumnLabel, TargetColumn, DataType from _aac_CRMAP where isnull(applicationTYpe,'') <> '' and mapcode = '" & cboMap.SelectedValue & "' order by applicationType DESC;" &
-                       "Select * from _aac_crmapz where mapcode = '" & CurrSelectedMap & "';"
+                lCmdText = "Select Mapcode, ApplicationType, SourceColumnLabel, TargetColumn, DataType 
+                            from _aac_CRMAP where isnull(applicationTYpe,'') <> '' and mapcode = '" & cboMap.SelectedValue & "' order by applicationType DESC;
+                           SELECT MapCode ,MapDesc ,FileMask ,FileType ,Inactive ,ReceiptID ,TargetTable ,XLSheetName ,isnull(FirstDataRow,1) 'FirstDataRow',SchemaName 
+                            FROM dbo._aac_CRMAPZ where mapcode = '" & CurrSelectedMap & "';"
                 Dim ldsMap = New DataSet
                 SQLCtl.ExecQuery(lCmdText, gSQLConnection)
                 ldsMap = SQLCtl.sqlds
@@ -153,7 +177,9 @@ Public Class UploadCRFile
                 SourceFileType = ldsMap.Tables(1).Rows(0)("FileType") 'Get file type of source table
                 SourceFileOpenMask = ldsMap.Tables(1).Rows(0)("FileMask") 'Get file mask for open dialog
                 SourceXLSheetName = ldsMap.Tables(1).Rows(0)("XLSheetName").ToString 'Get Sheet Name
-                OpenFileDialog1.Filter = "CR Excel Import Files|" & SourceFileOpenMask 'Get identifier for receipt object
+                FirstDataRow = ldsMap.Tables(1).Rows(0)("FirstDataRow") 'Get Sheet Name
+                UseSchemaName = ldsMap.Tables(1).Rows(0)("SchemaName").ToString 'Get Sheet Name
+                OpenFileDialog1.Filter = "CR Import Files|" & SourceFileOpenMask 'Get identifier for receipt object
 
                 'If ldsMap.Tables(2).Rows.Count > 0 Then
                 '    gImportNum = ldsMap.Tables(2).Rows(0)(0)
@@ -169,7 +195,11 @@ Public Class UploadCRFile
                 If mresp = MsgBoxResult.Cancel Then
                     ProgramAbend()
                 End If
+            Finally
+                btnEditMap.Enabled = (cboMap.SelectedValue <> "" And txtCRFile.Text <> "")
+                'txtCRFile.Enabled = True
             End Try
+
 
         End If
     End Sub
@@ -183,15 +213,16 @@ Public Class UploadCRFile
         btnUpload.Enabled = False
         Dim CnStr As String '= ""
         If FormLoad <> True And txtCRFile.Text <> "" Then
+            SourceFileName = txtCRFile.Text
             Dim fileobject As FileInfo
-            fileobject = New FileInfo(txtCRFile.Text)
+            fileobject = New FileInfo(SourceFileName)
 
             If fileobject.Exists Then
                 ' If ACE driver does not exist, use JET driver 
                 'If Microsoft.Win32.Registry.ClassesRoot.OpenSubKey("Microsoft.ACE.OLEDB.16.0\CLSID") Is Nothing Then
                 'CnStr = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" & Path.GetDirectoryName(txtCRFile.Text) &
                 '                   ";Extended Properties=""text;HDR=Yes;FMT=Delimited(|)"";"
-                CnStr = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=""" & Path.GetDirectoryName(txtCRFile.Text) &
+                CnStr = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=""" & Path.GetDirectoryName(SourceFileName) &
                     """;Extended Properties='text;HDR=Yes;FMT=Delimited;';"
 
                 '           Else
@@ -202,13 +233,26 @@ Public Class UploadCRFile
                 gdsSelectedCRSourceFile = New DataSet
 
                 If SourceFileType = "CSV" Then
+                    If UseSchemaName <> "" Then 'Copy file to schemna name and se that as input
+                        If (My.Computer.FileSystem.FileExists(Path.GetDirectoryName(txtCRFile.Text) & "\" & UseSchemaName)) Then
+                            My.Computer.FileSystem.DeleteFile(Path.GetDirectoryName(txtCRFile.Text) & "\" & UseSchemaName)
+                        End If
+
+                        My.Computer.FileSystem.CopyFile(SourceFileName, Path.GetDirectoryName(SourceFileName) & "\" & UseSchemaName)
+                        OrigFileName = SourceFileName
+                        SourceFileName = Path.GetDirectoryName(SourceFileName) & "\" & UseSchemaName
+
+
+                    End If
+
+
+
                     Try
-                        Dim CSVSelect As String = "select * from [" & Path.GetFileName(txtCRFile.Text) & "]"
+                        Dim CSVSelect As String = "select * from [" & Path.GetFileName(SourceFileName) & "]"
                         Using Adp As New OleDbDataAdapter(CSVSelect, CnStr)
                             Adp.Fill(gdsSelectedCRSourceFile)
                         End Using
-                        'gvData.DataSource = gdsSelectedCRSourceFile.Tables(0)
-                        'btnUpload.Enabled = True
+
                     Catch ex As Exception
                         MsgBox(ex.Message, MsgBoxStyle.Critical, "Error in CRFile.TextChanged event.")
                     End Try
@@ -219,8 +263,7 @@ Public Class UploadCRFile
                         Using Adp As New OleDbDataAdapter(CSVSelect, CnStr)
                             Adp.Fill(gdsSelectedCRSourceFile)
                         End Using
-                        'gvData.DataSource = gdsSelectedCRSourceFile.Tables(0)
-                        'btnUpload.Enabled = True
+
                     Catch ex As Exception
                         MsgBox("Verify range " + SourceXLSheetName + " exists In file " + txtCRFile.Text + vbCrLf + ex.Message, MsgBoxStyle.Critical, "CRFile.TextChanged Event. ")
                     End Try
@@ -232,13 +275,17 @@ Public Class UploadCRFile
             End If
 
 
-            gSourceDataPath = Path.GetDirectoryName(txtCRFile.Text)
+            gSourceDataPath = Path.GetDirectoryName(SourceFileName)
             If gswLogFile IsNot Nothing Then
                 gswLogFile.Close()
             End If
-            gImportLogName = Path.GetDirectoryName(txtCRFile.Text) & "\" & Path.GetFileNameWithoutExtension(txtCRFile.Text) & ".log"
+            ' Log File name should carry the original inptu file name regardles sof if a schema is being used.
+            gImportLogName = Path.GetDirectoryName(SourceFileName) & "\" & Path.GetFileNameWithoutExtension(txtCRFile.Text) & ".log"
             gswLogFile = New StreamWriter(gImportLogName, True)
         End If
+
+        btnEditMap.Enabled = (cboMap.SelectedValue <> "" And SourceFileName <> "")
+
     End Sub
 
 
@@ -265,7 +312,7 @@ Public Class UploadCRFile
                 Case "R" 'Replacement Variable
                     Select Case pMapTable.Rows(colix)("SourceColumnLabel").ToString.ToUpper
                         Case "%FileName%".ToUpper
-                            txtValues &= "'" & OpenFileDialog1.FileName & "', "
+                            txtValues &= "'" & txtCRFile.Text & "', "
                         Case "%ImportNum%".ToUpper
                             txtValues &= gImportNum.ToString & ", "
                         Case "%Time%".ToUpper
@@ -408,14 +455,14 @@ Public Class UploadCRFile
             ' lcmd.Connection = gSQLConnection
 
             ' // Test if file has already been processed by checking if it is in the load file //
-            Dim lCmdText As String = "Select count(*) As 'Count', max(_StagingDate) 'StagingDate' from " + TargetTableName + " where _SourceFile = '" & OpenFileDialog1.FileName & "'"
+            Dim lCmdText As String = "Select count(*) As 'Count', max(_StagingDate) 'StagingDate' from " + TargetTableName + " where _SourceFile = '" & txtCRFile.Text & "'"
             ''Dim ldtHist As DataTable  '' was new
             SQLCtl.ExecQuery(lCmdText, gSQLConnection)
             ''ldtHist = SQLCtl.sqlds.Tables(0)
             ''ldaHist.Fill(ldtHist)
             If SQLCtl.sqlds.Tables(0).Rows(0)("Count") <> 0 Then
                 Dim mresp As MsgBoxResult
-                mresp = MsgBox("File " & Path.GetFileName(OpenFileDialog1.FileName) & " has already been processed." + vbCrLf +
+                mresp = MsgBox("File " & Path.GetFileName(txtCRFile.Text) & " has already been processed." + vbCrLf +
                                "Do you want to re-upload it?" & vbCrLf +
                                "Last upload was on " & SQLCtl.sqlds.Tables(0).Rows(0)("StagingDate").ToString, MsgBoxStyle.Question + MsgBoxStyle.YesNo + MsgBoxStyle.DefaultButton2, "Duplicate Upload Name")
                 If mresp <> MsgBoxResult.Yes Then
@@ -494,7 +541,7 @@ Public Class UploadCRFile
                 WriteLog("Batch:" & gImportNum.ToString & "|Begin Validation" & Now().ToString)
                 Dim cdtError As New DataTable()
                 ' Validation Routine
-                SQLCtl.ExecCmd("Exec SpAacCRPreValidateData @BatchId=" & gImportNum.ToString, gSQLConnection)
+                SQLCtl.ExecCmd("Exec " & gCRValidationProc & " @BatchId=" & gImportNum.ToString, gSQLConnection)
                 ' Results of Validation
                 SQLCtl.ExecQuery("select Severity, TrackingNumber, errorvalue from [_AacCRImpErrorLog] where BatchId=" & gImportNum.ToString & " Order by trackingnumber", gSQLConnection)
                 cdtError = SQLCtl.sqlds.Tables(0)
@@ -509,7 +556,7 @@ Public Class UploadCRFile
                 SQLCtl.ExecQuery("select isnull(TrackingNumber,-1), Severity, errorvalue from [_AacCRImpErrorLog] where BatchId=" & gImportNum.ToString & " and severity <> 0 Order by trackingnumber", gSQLConnection)
                 cdtError = SQLCtl.sqlds.Tables(0)
                 If cdtError.Rows.Count <> 0 Then  ' Errors will prevent upload
-                    Dim ErrLogName As String = Path.GetDirectoryName(txtCRFile.Text) & "\" & Path.GetFileNameWithoutExtension(txtCRFile.Text) & ".err"
+                    Dim ErrLogName As String = Path.GetDirectoryName(SourceFileName) & "\" & Path.GetFileNameWithoutExtension(SourceFileName) & ".err"
                     Dim gswLogFileErr As New StreamWriter(ErrLogName, True)
                     gswLogFile.AutoFlush = True
                     gswLogFileErr.WriteLine("TimeStamp|BatchID|TrackingNum|Severity|Error")
@@ -540,20 +587,25 @@ Public Class UploadCRFile
     End Sub
 
     Private Sub btnEditMap_Click(sender As Object, e As EventArgs) Handles btnEditMap.Click
-        frmEditMap.ShowDialog(Me)
+        If (cboMap.SelectedValue <> "" And txtCRFile.Text <> "") Then
+            frmEditMap.ShowDialog(Me)
 
-        FormLoad = True
-        SQLCtl.ExecQuery("Select Mapcode, MapDesc, FileMask, TargetTable, FileType from _aac_CRMAPZ where inactive <> 'Y'", gSQLConnection)
-        gdtMaps = SQLCtl.sqlds.Tables(0)
-        With cboMap
-            .DataSource = gdtMaps
-            .DisplayMember = "MapDesc"
-            .ValueMember = "MapCode"
-            .Text = CurrSelectedMap
-            .Refresh()
-        End With
-        FormLoad = False
-        cboMap_SelectedIndexChanged(sender, e)
+            FormLoad = True
+            SQLCtl.ExecQuery("Select Mapcode, MapDesc + ' (' + MAPCODE + ')' AS 'MapDesc', FileMask, TargetTable, FileType from _aac_CRMAPZ where inactive <> 'Y'", gSQLConnection)
+            gdtMaps = SQLCtl.sqlds.Tables(0)
+            With cboMap
+                .DataSource = gdtMaps
+                .DisplayMember = "MapDesc"
+                .ValueMember = "MapCode"
+                .SelectedValue = CurrSelectedMap
+                '.Refresh()
+            End With
+            FormLoad = False
+            cboMap_SelectedIndexChanged(sender, e)
+        Else
+            MsgBox("Must select mapping and source file.", vbOKOnly, "Missing Information'")
+        End If
+
     End Sub
 
     Private Sub btnMapRefresh_Click_1(sender As Object, e As EventArgs) Handles btnMapRefresh.Click
@@ -623,7 +675,7 @@ Public Class UploadCRFile
             gswLogFile.Flush()
         End If
 
-        ActivityText.Text = pString
+        'ActivityText.Text = pString
     End Sub
 
     Private Sub ProgramAbend()
@@ -636,4 +688,11 @@ Public Class UploadCRFile
         End
     End Sub
 
+    Private Sub cboMap_TextChanged(sender As Object, e As EventArgs) Handles cboMap.TextChanged
+        If cboMap.Text.ToLower = "initialize" Then
+            frmEditMap.ShowDialog(Me)
+            Return
+
+        End If
+    End Sub
 End Class

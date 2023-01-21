@@ -38,34 +38,76 @@ Public Class frmEditMap
         gSQLConnection.Open()
 
 
-        SQLCtl.ExecQuery("Select Mapcode, MapDesc, FileMask, FileType from _aac_CRMAPZ where inactive <> 'Y'", gSQLConnection)
+        SQLCtl.ExecQuery("Select Mapcode, MapDesc + ' (' + mapcode + ')' as 'MapDesc', FileMask, FileType from _aac_CRMAPZ where inactive <> 'Y'", gSQLConnection)
         With cboMap
             .DataSource = SQLCtl.sqlds.Tables(0)
             .DisplayMember = "MapDesc"
             .ValueMember = "MapCode"
-            .Text = UploadCRFile.CurrSelectedMap
+            .SelectedValue = UploadCRFile.CurrSelectedMap
         End With
 
         btnSave.Enabled = False
 
         FormLoad = False
-        cboMap_SelectedIndexChanged(sender, e)
+        If cboMap.SelectedValue <> "" Then
+            cboMap_SelectedIndexChanged(sender, e)
+        End If
     End Sub
+
+    'Sub FormatMapGrid()
+    '    Dim kFont As Font = New Font(Font, FontStyle.Bold)
+    '    Dim lFont As Font = New Font(Font, FontStyle.Bold + FontStyle.Italic)
+    '    Dim rFont As Font = New Font(Font, FontStyle.Italic)
+    '    With dbMap
+    '        For R As Integer = 0 To .RowCount - 1
+    '            If Not String.IsNullOrEmpty(.Rows(R).Cells(2).Value.ToString) Then
+    '                If .Rows(R).Cells(2).Value = "R" Then
+    '                    .Rows(R).DefaultCellStyle.BackColor = Color.Honeydew
+    '                Else
+    '                    .Rows(R).DefaultCellStyle.BackColor = Color.LightCyan
+    '                End If
+    '            End If
+
+    '            If Not String.IsNullOrEmpty(.Rows(R).Cells(5).Value.ToString) Then
+    '                If .Rows(R).Cells(5).Value = "K" Or .Rows(R).Cells(5).Value = "C" Or .Rows(R).Cells(5).Value = "M" Then  'Highlight Constant
+    '                    .Rows(R).Cells(4).Style.Font = kFont
+    '                    .Rows(R).Cells(4).Style.ForeColor = Color.Red
+    '                    .Rows(R).Cells(5).Style.Font = kFont
+    '                End If
+    '                If .Rows(R).Cells(5).Value = "L" Then  'Highlight Constant
+    '                    .Rows(R).Cells(4).Style.Font = lFont
+    '                    .Rows(R).Cells(4).Style.ForeColor = Color.Blue
+    '                    .Rows(R).Cells(5).Style.Font = lFont
+
+    '                End If
+    '                If .Rows(R).Cells(5).Value = "R" Then  'Highlight Constant
+    '                    .Rows(R).Cells(4).Style.Font = rFont
+    '                    .Rows(R).Cells(4).Style.ForeColor = Color.Green
+    '                    .Rows(R).Cells(5).Style.Font = rFont
+    '                End If
+    '            End If
+    '        Next
+    '    End With
+    'End Sub
+
     Private Sub cboMap_SelectedIndexChanged(sender As Object, e As EventArgs) Handles cboMap.SelectedIndexChanged
         ' cboMap has all defined mappings.  When selected, load the details for that mapping to the gdtMap Data table
         If Not FormLoad Then
-
-
-            ' Dim lSqlConnection As New SqlClient.SqlConnection
+            Dim kFont As Font = New Font(Font, FontStyle.Bold)
+            Dim lFont As Font = New Font(Font, FontStyle.Bold + FontStyle.Italic)
+            Dim rFont As Font = New Font(Font, FontStyle.Italic)
 
             Dim lCmdText As String = ""
-            lCmdText = "Select 	MapCode,MapDesc,FileMask,FileType,Inactive,ReceiptID,TargetTable,XLSheetName from _aac_CRMAPZ where mapcode = '" & cboMap.SelectedValue & "'"
+            lCmdText = "Select 	MapCode,MapDesc,FileMask,FileType,Inactive,ReceiptID,TargetTable,XLSheetName, SchemaName, FirstDataRow 
+                        from _aac_CRMAPZ where mapcode = '" & cboMap.SelectedValue & "'"
             SQLCtl.ExecQuery(lCmdText, gSQLConnection)
             txtReceiptID.Text = SQLCtl.sqlds.Tables(0).Rows(0)("ReceiptID").ToString
             txtFileMask.Text = SQLCtl.sqlds.Tables(0).Rows(0)("FileMask").ToString
             txtTargetTable.Text = SQLCtl.sqlds.Tables(0).Rows(0)("TargetTable").ToString
             CBOSheetName.Text = SQLCtl.sqlds.Tables(0).Rows(0)("XLSheetName").ToString
             cboFileType.Text = SQLCtl.sqlds.Tables(0).Rows(0)("FileType").ToString
+            txtFirstDataRow.Text = SQLCtl.sqlds.Tables(0).Rows(0)("FirstDataRow").ToString
+            txtUseSchema.Text = SQLCtl.sqlds.Tables(0).Rows(0)("SchemaName").ToString
 
             lCmdText = "Select RowUno, Mapcode, ApplicationType, TargetColumn, SourceColumnLabel, DataType from _aac_CRMAP where isnull(applicationtype,'') <> '' and mapcode = '" & cboMap.SelectedValue & "' order by applicationType DESC;"
             '"Select MapCode, MapDesc, FileMask, FileType, ReceiptID from _aac_crmapz where mapcode = '" & cboMap.SelectedValue & "';" &
@@ -76,27 +118,31 @@ Public Class frmEditMap
             ldaMap.Fill(ldsMap)
             ' If source file was identified on previous screen, load columns into AvailableFields list
             ' gdsSelectedCRSourceFile is a DataSet object for the selected file
-            With lbAvailableFields
-                gdtAvailableColumns = UploadCRFile.gdsSelectedCRSourceFile.Tables(0)
-                .Items.Clear()
-                If UploadCRFile.txtCRFile.Text <> "" Then
-                    For Each col In UploadCRFile.gdsSelectedCRSourceFile.Tables(0).Columns
-                        .Items.Add(col.ToString)
-                    Next
-                Else
-                    .Items.Add("{Select file on previous screen}")
-                End If
-                .Items.Add("%User%")
-                .Items.Add("%FileName%")
-                .Items.Add("%ImportNum%")
-                .Items.Add("%TranNum%")
-                .Items.Add("%TranLine%")
-                .Items.Add("%Time%")
-            End With
-
+            If UploadCRFile.gdsSelectedCRSourceFile.Tables.Count > 0 Then
+                With lbAvailableFields
+                    gdtAvailableColumns = UploadCRFile.gdsSelectedCRSourceFile.Tables(0)
+                    .Items.Clear()
+                    If UploadCRFile.txtCRFile.Text <> "" Then
+                        For Each col In UploadCRFile.gdsSelectedCRSourceFile.Tables(0).Columns
+                            .Items.Add(col.ToString)
+                        Next
+                    Else
+                        .Items.Add("{Select file on previous screen}")
+                    End If
+                    .Items.Add("%User%")
+                    .Items.Add("%FileName%")
+                    .Items.Add("%ImportNum%")
+                    .Items.Add("%TranNum%")
+                    .Items.Add("%TranLine%")
+                    .Items.Add("%Time%")
+                    .ForeColor = Color.Blue
+                    .Font = lFont
+                End With
+            End If
 
 
             gdtMap = ldsMap.Tables(0)
+
             Dim DataTypeCol As New DataGridViewComboBoxColumn
             DataTypeCol.Items.Add("K")
             DataTypeCol.Items.Add("L")
@@ -106,56 +152,81 @@ Public Class frmEditMap
             DataTypeCol.Items.Add(" ")
             Dim TextCol0, TextCol1, TextCol2, TextCol3, TextCol4 As New DataGridViewTextBoxColumn
 
-            With dbMap
-                '.DataSource = Nothing
-                '.Rows.Clear()
-                .AutoGenerateColumns = False
-                .Columns.Add(TextCol0)
-                .Columns.Add(TextCol1)
-                .Columns.Add(TextCol2)
-                .Columns.Add(TextCol3)
-                'If UploadCRFile.txtCRFile.Text <> "" Then
-                '    .Columns.Add(SourceDataColLookup)
-                'Else
-                .Columns.Add(TextCol4)
-                'End If
 
-                .Columns.Add(DataTypeCol)
-                .Columns(0).DataPropertyName = "RowUno"
-                .Columns(1).DataPropertyName = "MapCode"
-                .Columns(2).DataPropertyName = "ApplicationType"
-                .Columns(3).DataPropertyName = "TargetColumn"
-                .Columns(4).DataPropertyName = "SourceColumnLabel"
-                .Columns(5).DataPropertyName = "DataType"
-                .Columns(1).HeaderText = "Map Code"
-                .Columns(2).HeaderText = "Application Type"
-                .Columns(3).HeaderText = "Target Column"
-                .Columns(4).HeaderText = "Source"
-                .Columns(5).HeaderText = "Mapping Action"
-                .Columns(0).ReadOnly = True
-                .Columns(3).ReadOnly = True
-                .Columns(0).DefaultCellStyle.BackColor = Color.Silver
-                .Columns(3).DefaultCellStyle.BackColor = Color.Silver
-                .Columns(0).Visible = False
-                .Columns(1).Visible = False
+                With dbMap
+                    '+++
+                    .DataSource = Nothing
+                    .Rows.Clear()
+                    .Columns.Clear()
+                    '+++
+                    .AutoGenerateColumns = False
+                    .Columns.Add(TextCol0)
+                    .Columns.Add(TextCol1)
+                    .Columns.Add(TextCol2)
+                    .Columns.Add(TextCol3)
+                    'If UploadCRFile.txtCRFile.Text <> "" Then
+                    '    .Columns.Add(SourceDataColLookup)
+                    'Else
+                    .Columns.Add(TextCol4)
+                    'End If
 
-                .DataSource = gdtMap
-                For R As Integer = 0 To .RowCount - 1
-                    If .Rows(R).Cells(2).Value = "R" Then
-                        .Rows(R).DefaultCellStyle.BackColor = Color.Honeydew
-                    Else
-                        .Rows(R).DefaultCellStyle.BackColor = Color.LightCyan
-                    End If
+                    .Columns.Add(DataTypeCol)
+                    .Columns(0).DataPropertyName = "RowUno"
+                    .Columns(1).DataPropertyName = "MapCode"
+                    .Columns(2).DataPropertyName = "ApplicationType"
+                    .Columns(3).DataPropertyName = "TargetColumn"
+                    .Columns(4).DataPropertyName = "SourceColumnLabel"
+                    .Columns(5).DataPropertyName = "DataType"
+                    .Columns(1).HeaderText = "Map Code"
+                    .Columns(2).HeaderText = "Application Type"
+                    .Columns(3).HeaderText = "Target Column"
+                    .Columns(4).HeaderText = "Source"
+                    .Columns(5).HeaderText = "Mapping Action"
+                    .Columns(0).ReadOnly = True
+                    .Columns(3).ReadOnly = True
+                    .Columns(0).DefaultCellStyle.BackColor = Color.Silver
+                    .Columns(3).DefaultCellStyle.BackColor = Color.Silver
+                    .Columns(0).Visible = False
+                    .Columns(1).Visible = False
 
-                Next
 
-            End With
+                    .DataSource = gdtMap
+                    'FormatMapGrid()
+                    For R As Integer = 0 To .RowCount - 1
+                        If .Rows(R).Cells(2).Value = "R" Then
+                            .Rows(R).DefaultCellStyle.BackColor = Color.Honeydew
+                        Else
+                            .Rows(R).DefaultCellStyle.BackColor = Color.LightCyan
+                        End If
+                        If .Rows(R).Cells(5).Value = "K" Or .Rows(R).Cells(5).Value = "C" Or .Rows(R).Cells(5).Value = "M" Then  'Highlight Constant
+                            .Rows(R).Cells(4).Style.Font = kFont
+                            .Rows(R).Cells(4).Style.ForeColor = Color.Red
+                            .Rows(R).Cells(5).Style.Font = kFont
 
-            ldaMap.UpdateCommand = New SqlCommandBuilder(ldaMap).GetUpdateCommand
-            btnSave.Enabled = False
-            txtTargetTable_Leave(sender, e)
 
-        End If
+                        End If
+                        If .Rows(R).Cells(5).Value = "L" Then  'Highlight Constant
+                            .Rows(R).Cells(4).Style.Font = lFont
+                            .Rows(R).Cells(4).Style.ForeColor = Color.Blue
+                            .Rows(R).Cells(5).Style.Font = lFont
+
+                        End If
+                        If .Rows(R).Cells(5).Value = "R" Then  'Highlight Constant
+                            .Rows(R).Cells(4).Style.Font = rFont
+                            .Rows(R).Cells(4).Style.ForeColor = Color.Green
+                            .Rows(R).Cells(5).Style.Font = rFont
+
+                        End If
+
+                    Next
+
+                End With
+
+                ldaMap.UpdateCommand = New SqlCommandBuilder(ldaMap).GetUpdateCommand
+                btnSave.Enabled = False
+                txtTargetTable_Leave(sender, e)
+
+            End If
     End Sub
 
     Private Sub btnSave_Click(sender As Object, e As EventArgs) Handles btnSave.Click
@@ -166,17 +237,19 @@ Public Class frmEditMap
         '        lrow.Cells(1).Value = cboMap.Text
         '    End If
         'Next
-        ldaMap.Update(ldsMap) ' THis sill update the map from the data bound grid
+        ldaMap.Update(ldsMap) ' This will update the map from the data bound grid
         Dim lCmd As String = "Update _aac_CRMAPZ set receiptid = '" & txtReceiptID.Text & "', FileMask = '" & txtFileMask.Text &
                             "', TargetTable = '" & txtTargetTable.Text &
                             "', FileType = '" & cboFileType.Text &
                             "', XLSheetName = '" & CBOSheetName.Text &
+                            "', SchemaName = '" & txtUseSchema.Text &
+                            "', FirstDataRow = '" & txtFirstDataRow.Text &
                             "' where mapcode = '" &
             cboMap.SelectedValue & "'"
         SQLCtl.ExecCmd(lCmd, gSQLConnection)
         btnSave.Enabled = False
         cboMap_SelectedIndexChanged(sender, e)
-        UploadCRFile.CurrSelectedMap = cboMap.SelectedText
+        UploadCRFile.CurrSelectedMap = cboMap.SelectedValue
     End Sub
 
 
@@ -334,6 +407,17 @@ Public Class frmEditMap
 
     Private Sub cboFileType_SelectedIndexChanged(sender As Object, e As EventArgs) Handles cboFileType.SelectedIndexChanged
         btnSave.Enabled = True
+        If cboFileType.SelectedItem = "CSV" Then
+            txtUseSchema.Visible = True
+            lblUseSchema.Visible = True
+            lblSheetName.Visible = False
+            CBOSheetName.Visible = False
+        Else
+            txtUseSchema.Visible = False
+            lblUseSchema.Visible = False
+            lblSheetName.Visible = True
+            CBOSheetName.Visible = True
+        End If
     End Sub
 
     Private Sub CBOSheetName_SelectedIndexChanged(sender As Object, e As EventArgs) Handles CBOSheetName.SelectedIndexChanged
@@ -367,15 +451,27 @@ Public Class frmEditMap
         End If
 
         Dim ColumnFound As Boolean = False
+        Dim DataTypeMisMatch As Boolean = False
 
         Dim drMapSource() As DataRow = gdtMap.Select("DataType in ('R','L','C','M')")
         For Each row As DataRow In drMapSource
             ColumnFound = False
+            DataTypeMisMatch = False
+            If Mid(row("SourceColumnLabel").toupper, 1, 1) = "%" And row("DataType").toupper <> "R" Then
+                DataTypeMisMatch = True
+            End If
+
+
             Debug.Print(row("SourceColumnLabel"))
             For Each col In UploadCRFile.gdsSelectedCRSourceFile.Tables(0).Columns
                 Debug.Print(col.ToString & ":" & row("SourceColumnLabel"))
+
+
                 If col.ToString.ToUpper = row("SourceColumnLabel").toupper Then
                     ColumnFound = True
+                    If row("DataType").toupper = "R" Then
+                        DataTypeMisMatch = True
+                    End If
                     Exit For
                 End If
                 Select Case row("SourceColumnLabel").toupper
@@ -401,7 +497,9 @@ Public Class frmEditMap
             If row("SourceColumnLabel").ToString = "" And row("TargetColumn").ToString <> "" Then
                 MapIssuesText &= "No Source column for target" & row("TargetColumn").ToString & " (Type:" & row("ApplicationType").ToString & ")" & Environment.NewLine
             End If
-
+            If DataTypeMisMatch Then
+                MapIssuesText &= "Check datatype mapping code target" & row("TargetColumn").ToString & " (Type:" & row("ApplicationType").ToString & ")" & Environment.NewLine
+            End If
 
         Next
 
@@ -497,4 +595,9 @@ Public Class frmEditMap
     End Sub
 
 
+
+
+    'Private Sub dbMap_RowLeave(sender As Object, e As DataGridViewCellEventArgs) Handles dbMap.RowLeave
+    '    FormatMapGrid()
+    'End Sub
 End Class
