@@ -567,7 +567,7 @@ Public Class UploadCRFile
 
                     MsgBox("Could not import due to validation errors. Please review log:" & vbCrLf & ErrLogName, MsgBoxStyle.OkOnly + MsgBoxStyle.Exclamation, "Validation Errors")
 
-                Else ' No Errors found
+                Else ' No Errors > severity 0 found
                     '-------------------------------------------------------
                     ' IF NO ERRORS, CALL UPLOAD ROUTINE TO CREATE CR SESSION
                     '-------------------------------------------------------
@@ -578,6 +578,14 @@ Public Class UploadCRFile
                     SQLCtl.ExecQuery("select max(_Session) from _aac_CR_load where BatchId=" & gImportNum.ToString, gSQLConnection)
                     cdtError = SQLCtl.sqlds.Tables(0)
                     StatusText.Text &= "; Created Session " & cdtError.Rows(0)(0).ToString
+                    ' If sucessful upload, archive the import file
+                    Dim fso As New FileInfo(txtCRFile.Text)
+                    fso.CopyTo(txtCRFile.Text & ".processed")
+                    fso.Delete()
+
+
+
+
                 End If
                 cdtError.Dispose()
             End If
