@@ -575,22 +575,28 @@ Public Class UploadCRFile
                     cdtError.Dispose()
                     cdtError = New DataTable()
                     ' Get session created to report back 
-                    SQLCtl.ExecQuery("select max(_Session) from _aac_CR_load where BatchId=" & gImportNum.ToString, gSQLConnection)
+                    SQLCtl.ExecQuery("select max(_Session) from " & TargetTableName & " where BatchId=" & gImportNum.ToString, gSQLConnection)
                     cdtError = SQLCtl.sqlds.Tables(0)
                     StatusText.Text &= "; Created Session " & cdtError.Rows(0)(0).ToString
                     ' If sucessful upload, archive the import file
                     Dim fso As New FileInfo(txtCRFile.Text)
-                    fso.CopyTo(txtCRFile.Text & ".processed")
+                    Dim ArchPath As String = Path.GetDirectoryName(txtCRFile.Text) & "\archive\"
+                    If Not Directory.Exists(ArchPath) Then
+                        Directory.CreateDirectory(ArchPath)
+                    End If
+                    ArchPath = ArchPath & Path.GetFileName(txtCRFile.Text)
+                    fso.CopyTo(ArchPath)
                     fso.Delete()
 
 
 
 
                 End If
-                cdtError.Dispose()
+                    cdtError.Dispose()
             End If
         Catch ex As Exception
-            MsgBox(ex.Message, MsgBoxStyle.OkOnly, "Unhandled Exception in btnUpload")
+
+            MsgBox(ex.Message, MsgBoxStyle.OkOnly, "Unhandled Exception In btnUpload")
         End Try
     End Sub
 
