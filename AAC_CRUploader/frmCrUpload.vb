@@ -169,7 +169,7 @@ Public Class UploadCRFile
                 SQLCtl.ExecQuery(lCmdText, gSQLConnection)
                 ldsMap = SQLCtl.sqlds
                 gdtMap = ldsMap.Tables(0)
-                dbMap.DataSource = gdtMap
+                ' dbMap.DataSource = gdtMap
 
                 dbMapz.DataSource = ldsMap.Tables(1)
                 ReceiptKeyColumn = ldsMap.Tables(1).Rows(0)("ReceiptID") 'Get identifier for receipt object

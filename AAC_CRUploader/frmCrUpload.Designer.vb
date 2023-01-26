@@ -23,7 +23,6 @@ Partial Class UploadCRFile
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
         Dim DataGridViewCellStyle1 As System.Windows.Forms.DataGridViewCellStyle = New System.Windows.Forms.DataGridViewCellStyle()
-        Dim DataGridViewCellStyle2 As System.Windows.Forms.DataGridViewCellStyle = New System.Windows.Forms.DataGridViewCellStyle()
         Me.txtCRFile = New System.Windows.Forms.TextBox()
         Me.Label1 = New System.Windows.Forms.Label()
         Me.OpenFileDialog1 = New System.Windows.Forms.OpenFileDialog()
@@ -32,8 +31,6 @@ Partial Class UploadCRFile
         Me.btnClose = New System.Windows.Forms.Button()
         Me.Label2 = New System.Windows.Forms.Label()
         Me.cboMap = New System.Windows.Forms.ComboBox()
-        Me.dbMap = New System.Windows.Forms.DataGridView()
-        Me.Label3 = New System.Windows.Forms.Label()
         Me.dbMapz = New System.Windows.Forms.DataGridView()
         Me.Label4 = New System.Windows.Forms.Label()
         Me.Label5 = New System.Windows.Forms.Label()
@@ -46,7 +43,6 @@ Partial Class UploadCRFile
         Me.chkValidate = New System.Windows.Forms.CheckBox()
         Me.btnViewLog = New System.Windows.Forms.Button()
         Me.chkLogDebug = New System.Windows.Forms.CheckBox()
-        CType(Me.dbMap, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.dbMapz, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.gvData, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.StatusStrip1.SuspendLayout()
@@ -124,36 +120,6 @@ Partial Class UploadCRFile
         Me.cboMap.Size = New System.Drawing.Size(1028, 21)
         Me.cboMap.TabIndex = 7
         '
-        'dbMap
-        '
-        Me.dbMap.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
-            Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.dbMap.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells
-        Me.dbMap.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCells
-        Me.dbMap.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
-        Me.dbMap.Location = New System.Drawing.Point(919, 169)
-        Me.dbMap.MultiSelect = False
-        Me.dbMap.Name = "dbMap"
-        Me.dbMap.ReadOnly = True
-        Me.dbMap.RowHeadersVisible = False
-        DataGridViewCellStyle1.Font = New System.Drawing.Font("Consolas", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.dbMap.RowsDefaultCellStyle = DataGridViewCellStyle1
-        Me.dbMap.RowTemplate.Height = 18
-        Me.dbMap.RowTemplate.ReadOnly = True
-        Me.dbMap.Size = New System.Drawing.Size(364, 147)
-        Me.dbMap.TabIndex = 8
-        Me.dbMap.Visible = False
-        '
-        'Label3
-        '
-        Me.Label3.AutoSize = True
-        Me.Label3.Location = New System.Drawing.Point(912, 153)
-        Me.Label3.Name = "Label3"
-        Me.Label3.Size = New System.Drawing.Size(79, 13)
-        Me.Label3.TabIndex = 9
-        Me.Label3.Text = "Data Mappings"
-        Me.Label3.Visible = False
-        '
         'dbMapz
         '
         Me.dbMapz.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
@@ -199,8 +165,8 @@ Partial Class UploadCRFile
         Me.gvData.Name = "gvData"
         Me.gvData.ReadOnly = True
         Me.gvData.RowHeadersVisible = False
-        DataGridViewCellStyle2.Font = New System.Drawing.Font("Consolas", 6.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.gvData.RowsDefaultCellStyle = DataGridViewCellStyle2
+        DataGridViewCellStyle1.Font = New System.Drawing.Font("Consolas", 6.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.gvData.RowsDefaultCellStyle = DataGridViewCellStyle1
         Me.gvData.RowTemplate.ReadOnly = True
         Me.gvData.Size = New System.Drawing.Size(1164, 248)
         Me.gvData.TabIndex = 13
@@ -296,8 +262,6 @@ Partial Class UploadCRFile
         Me.Controls.Add(Me.Label5)
         Me.Controls.Add(Me.Label4)
         Me.Controls.Add(Me.dbMapz)
-        Me.Controls.Add(Me.Label3)
-        Me.Controls.Add(Me.dbMap)
         Me.Controls.Add(Me.cboMap)
         Me.Controls.Add(Me.Label2)
         Me.Controls.Add(Me.btnClose)
@@ -307,7 +271,6 @@ Partial Class UploadCRFile
         Me.Controls.Add(Me.txtCRFile)
         Me.Name = "UploadCRFile"
         Me.Text = "Upload Cash Receipt File"
-        CType(Me.dbMap, System.ComponentModel.ISupportInitialize).EndInit()
         CType(Me.dbMapz, System.ComponentModel.ISupportInitialize).EndInit()
         CType(Me.gvData, System.ComponentModel.ISupportInitialize).EndInit()
         Me.StatusStrip1.ResumeLayout(False)
@@ -325,8 +288,6 @@ Partial Class UploadCRFile
     Friend WithEvents btnClose As Button
     Friend WithEvents Label2 As Label
     Friend WithEvents cboMap As ComboBox
-    Friend WithEvents dbMap As DataGridView
-    Friend WithEvents Label3 As Label
     Friend WithEvents dbMapz As DataGridView
     Friend WithEvents Label4 As Label
     Friend WithEvents Label5 As Label
